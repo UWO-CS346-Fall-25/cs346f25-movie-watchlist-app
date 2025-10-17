@@ -70,24 +70,33 @@ A teaching template for building secure web applications with Node.js, Express, 
 │   ├── server.js           # Server entry point
 │   ├── app.js              # Express app configuration
 │   ├── routes/             # Route definitions
+│   │   └── index.js        # Main route handlers
 │   ├── controllers/        # Request handlers
-│   ├── models/             # Database models
+│   │   └── homeController.js # Home page controller
 │   ├── views/              # EJS templates
-│   └── public/             # Static files (CSS, JS, images)
+│   │   ├── index.ejs       # Home page (watchlist)
+│   │   ├── history.ejs     # Movie history page
+│   │   ├── settings.ejs    # User settings page
+│   │   ├── error.ejs       # Error page
+│   │   └── layout.ejs      # Main layout template
+│   └── public/             # Static files
+│       ├── css/            # Stylesheets
+│       │   └── style.css   # Main stylesheet
+│       ├── js/             # Client-side JavaScript
+│          ├── main.js     # Main JavaScript file
+│          ├── history.js  # History page functionality
+│          └── settings.js # Settings page functionality
 ├── db/
 │   ├── migrations/         # Database migrations
 │   ├── seeds/              # Database seeds
 │   ├── migrate.js          # Migration runner
 │   ├── seed.js             # Seed runner
 │   └── reset.js            # Database reset script
-├── docs/                   # Documentation
-│   ├── README.md           # Documentation overview
-│   ├── SETUP.md            # Setup guide
-│   └── ARCHITECTURE.md     # Architecture details
 ├── .env.example            # Environment variables template
 ├── .eslintrc.json          # ESLint configuration
 ├── .prettierrc.json        # Prettier configuration
-└── package.json            # Dependencies and scripts
+├── package.json            # Dependencies and scripts
+└── README.md               # Project documentation
 ```
 
 ## Available Scripts
@@ -217,21 +226,35 @@ A web application that allows users to track movies they want to watch and have 
 │   ├── server.js           # Server entry point
 │   ├── app.js              # Express app configuration
 │   ├── routes/             # Route definitions
+│   │   └── index.js        # Main route handlers
 │   ├── controllers/        # Request handlers
-│   ├── models/             # Database models
+│   │   └── homeController.js # Home page controller
 │   ├── views/              # EJS templates
-│   │   ├── index.ejs       # Home page
-│   │   ├── history.ejs     # History page
-│   │   ├── settings.ejs    # Settings page
-│   │   └── error.ejs       # Error page
+│   │   ├── index.ejs       # Home page (watchlist)
+│   │   ├── history.ejs     # Movie history page
+│   │   ├── settings.ejs    # User settings page
+│   │   ├── error.ejs       # Error page
+│   │   └── layout.ejs      # Main layout template
 │   └── public/             # Static files
 │       ├── css/            # Stylesheets
+│       │   └── style.css   # Main stylesheet
 │       ├── js/             # Client-side JavaScript
+│       │   ├── main.js     # Main JavaScript file
+│       │   ├── history.js  # History page functionality
+│       │   └── settings.js # Settings page functionality
 │       └── images/         # Image assets
+│           └── default-avatar.png # Default user avatar
 ├── db/
 │   ├── migrations/         # Database migrations
-│   └── seeds/              # Database seeds
-└── package.json            # Dependencies and scripts
+│   ├── seeds/              # Database seeds
+│   ├── migrate.js          # Migration runner
+│   ├── seed.js             # Seed runner
+│   └── reset.js            # Database reset script
+├── .env.example            # Environment variables template
+├── .eslintrc.json          # ESLint configuration
+├── .prettierrc.json        # Prettier configuration
+├── package.json            # Dependencies and scripts
+└── README.md               # Project documentation
 ```
 
 ## Features
