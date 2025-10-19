@@ -3,41 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> - CS346 Project</title>
+  <title><%= title %> - Movie Watchlist</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <header>
     <nav>
       <div class="container">
-        <a href="/" class="logo">CS346 Project</a>
+        <a href="/" class="logo">Movie Watchlist</a>
         <ul class="nav-links">
           <li><a href="/">Home</a></li>
+          <li><a href="/history">History</a></li>
+          <li><a href="/settings">Settings</a></li>
         </ul>
       </div>
     </nav>
   </header>
 
   <main class="container">
-    <div class="error-page">
-      <h1><%= error.status || 500 %></h1>
+    <section class="error-page">
+      <h1><%= error.status %></h1>
       <h2><%= message %></h2>
-      
-      <% if (error.stack) { %>
-        <div class="error-details">
-          <h3>Error Details (Development Only)</h3>
-          <pre><%= error.stack %></pre>
-        </div>
-      <% } %>
+      <p>Sorry, something went wrong.</p>
+      <a href="/" class="btn-primary">Return to Home</a>
+    </section>
 
-      <a href="/" class="btn">Go Back Home</a>
-    </div>
+    <% if (error.status !== 404 && error.stack) { %>
+    <section class="error-details">
+      <h3>Error Details</h3>
+      <pre><%= error.stack %></pre>
+    </section>
+    <% } %>
   </main>
 
   <footer>
     <div class="container">
-      <p>&copy; 2024 CS346 Project. All rights reserved.</p>
+      <p>&copy; 2024 Movie Watchlist App. All rights reserved.</p>
     </div>
   </footer>
+
+  <script src="/js/main.js"></script>
 </body>
 </html>

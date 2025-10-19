@@ -67,19 +67,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-// Import and use your route files here
-// Example:
-// const indexRouter = require('./routes/index');
-// app.use('/', indexRouter);
+// Routes - Import from routes directory for better organization
+const indexRouter = require('./routes/index');
 
-// Placeholder home route
-app.get('/', csrfProtection, (req, res) => {
-  res.render('index', {
-    title: 'Home',
-    csrfToken: req.csrfToken(),
-  });
-});
+// Apply routes
+app.use('/', csrfProtection, indexRouter);
 
 // 404 handler
 app.use((req, res) => {
@@ -92,6 +84,29 @@ app.use((req, res) => {
 
 // Error handler
 // eslint-disable-next-line no-unused-vars
+app.use((err, req, res, _next) => {
+  // Log error in development
+  if (process.env.NODE_ENV === 'development') {
+    console.error(err.stack);
+  }
+
+  // Set locals, only providing error details in development
+  res.locals.message = err.message;
+  res.locals.error = process.env.NODE_ENV === 'development' ? err : {};
+
+  // Render error page
+  res.status(err.status || 500);
+  res.render('error', {
+    title: 'Error',
+    message: err.message,
+    error: res.locals.error,
+  });
+});
+
+module.exports = app;
+
+// Error handler
+
 app.use((err, req, res, _next) => {
   // Log error in development
   if (process.env.NODE_ENV === 'development') {

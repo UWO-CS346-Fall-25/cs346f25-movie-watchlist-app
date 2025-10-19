@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>History - Movie Watchlist</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <div class="container">
+          <a href="/" class="logo">Movie Watchlist</a>
+          <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/history" class="active">History</a></li>
+            <li><a href="/settings">Settings</a></li>
+            <!-- <% if (user) { %>
+            <li>
+              <form action="/users/logout" method="POST" style="display: inline;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn-link">Logout</button>
+              </form>
+            </li>
+          <% } else { %>
+            <li><a href="/users/login">Login</a></li>
+            <li><a href="/users/register">Register</a></li>
+          <% } %> -->
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h1>Movie History</h1>
+        <p>Your watched movies and reviews</p>
+      </section>
+
+      <section class="filters">
+        <h2>Filter History</h2>
+        <form class="movie-form">
+          <div class="form-group">
+            <input
+              type="text"
+              id="filterName"
+              placeholder="Search by name..."
+            />
+            <select id="filterGenre">
+              <option value="">All Genres</option>
+              <option value="action">Action</option>
+              <option value="comedy">Comedy</option>
+              <option value="drama">Drama</option>
+              <option value="horror">Horror</option>
+              <option value="romance">Romance</option>
+              <option value="sci-fi">Sci-Fi</option>
+              <option value="thriller">Thriller</option>
+            </select>
+            <div class="date-filter">
+              <label for="filterDateFrom">From:</label>
+              <input type="date" id="filterDateFrom" />
+            </div>
+            <div class="date-filter">
+              <label for="filterDateTo">To:</label>
+              <input type="date" id="filterDateTo" />
+            </div>
+            <button id="clearFilters" class="btn-secondary">
+              Clear Filters
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="movie-history">
+        <div class="list-header">
+          <h2>Watched Movies</h2>
+          <div class="stats">
+            <span id="totalWatched">0 movies watched</span>
+          </div>
+        </div>
+
+        <div id="historyList" class="history-grid">
+          <div class="empty-state">
+            <h3>No movies watched yet!</h3>
+            <p>
+              Mark movies as watched from your <a href="/">watchlist</a> to see
+              them here.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Review Modal -->
+      <div id="reviewModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Edit Review</h3>
+            <span class="close">&times;</span>
+          </div>
+          <div class="modal-body">
+            <form id="reviewForm">
+              <div class="form-group">
+                <label for="reviewText">Your Review:</label>
+                <textarea
+                  id="reviewText"
+                  placeholder="Write your review..."
+                  rows="4"
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="rating">Rating:</label>
+                <select id="rating">
+                  <option value="1">1 Star</option>
+                  <option value="2">2 Stars</option>
+                  <option value="3">3 Stars</option>
+                  <option value="4">4 Stars</option>
+                  <option value="5">5 Stars</option>
+                </select>
+              </div>
+              <div class="modal-actions">
+                <button type="submit" class="btn-primary">Save Review</button>
+                <button type="button" class="btn-secondary" id="cancelReview">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 Movie Watchlist App. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/history.js"></script>
+  </body>
+</html>

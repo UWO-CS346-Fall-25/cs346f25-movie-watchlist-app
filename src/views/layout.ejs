@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> - CS346 Project</title>
-  
+
   <!-- CSS -->
   <link rel="stylesheet" href="/css/style.css">
-  
+
   <!-- Additional head content -->
   <%- typeof head !== 'undefined' ? head : '' %>
 </head>
@@ -20,7 +20,7 @@
         <ul class="nav-links">
           <li><a href="/">Home</a></li>
           <li><a href="/about">About</a></li>
-          <% if (user) { %>
+          <!-- <% if (user) { %>
             <li><a href="/profile">Profile</a></li>
             <li>
               <form action="/users/logout" method="POST" style="display: inline;">
@@ -31,7 +31,7 @@
           <% } else { %>
             <li><a href="/users/login">Login</a></li>
             <li><a href="/users/register">Register</a></li>
-          <% } %>
+          <% } %> -->
         </ul>
       </div>
     </nav>
@@ -51,7 +51,7 @@
 
   <!-- JavaScript -->
   <script src="/js/main.js"></script>
-  
+
   <!-- Additional scripts -->
   <%- typeof scripts !== 'undefined' ? scripts : '' %>
 </body>
