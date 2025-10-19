@@ -352,6 +352,48 @@ main {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* Settings Page */
+.settings-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.profile-section,
+.password-section,
+.theme-section,
+.account-section {
+  background: var(--surface);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+}
+
+.settings-form .form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-bottom: 1.5rem;
+}
+
+.settings-form .form-group label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.settings-form .form-group input,
+.settings-form .form-group select,
+.settings-form .form-group textarea {
+  width: 100%;
+  min-width: auto;
+}
+
+.settings-form button[type='submit'] {
+  margin-top: 1.5rem;
+  align-self: flex-start;
+}
+
 /* Filter Controls */
 .filters {
   background: var(--surface);
@@ -372,6 +414,26 @@ main {
 .filter-controls select {
   flex: 1;
   min-width: 150px;
+}
+
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.date-filter label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.date-filter input {
+  flex: 1;
+  min-width: 120px;
 }
 
 /* Movie Grid */
@@ -482,84 +544,6 @@ main {
 .stats {
   color: var(--text-secondary);
   font-weight: 500;
-}
-
-/* Settings Page */
-.settings-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.profile-section,
-.password-section,
-.theme-section,
-.account-section {
-  background: var(--surface);
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  margin-bottom: 2rem;
-}
-
-.avatar-container {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid var(--border);
-}
-
-.theme-options {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.theme-option {
-  cursor: pointer;
-}
-
-.theme-preview {
-  display: block;
-  padding: 1rem;
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.theme-preview.light {
-  background: #ffffff;
-  color: #2d3748;
-}
-
-.theme-preview.dark {
-  background: #2d3748;
-  color: #f7fafc;
-}
-
-.theme-option input:checked + .theme-preview {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.danger-zone {
-  border: 2px solid var(--danger);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  background: rgba(245, 101, 101, 0.05);
-}
-
-.danger-zone h3 {
-  color: var(--danger);
-  margin-bottom: 0.5rem;
 }
 
 /* Modal */
