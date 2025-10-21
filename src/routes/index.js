@@ -1,44 +1,23 @@
 /**
  * Main Routes
  *
- * Contains routes for:
- * - Home page
- * - History page
- * - Settings page
+ * Contains routes for main pages:
+ * - Home
+ * - History
+ * - Settings
  */
 
 const express = require('express');
 const router = express.Router();
-
-// Import controllers
 const homeController = require('../controllers/homeController');
 
 // Home page route
-router.get('/', (req, res) => {
-  res.render('index', {
-    title: 'Home',
-    user: req.user,
-    csrfToken: req.csrfToken(),
-  });
-});
+router.get('/', homeController.getHome);
 
 // History page route
-router.get('/history', (req, res) => {
-  res.render('history', {
-    title: 'History',
-    user: req.user,
-    csrfToken: req.csrfToken(),
-  });
-});
+router.get('/history', homeController.getHistory);
 
 // Settings page route
-router.get('/settings', (req, res) => {
-  res.render('settings', {
-    title: 'Settings',
-    user: req.user,
-    csrfToken: req.csrfToken(),
-  });
-});
+router.get('/settings', homeController.getSettings);
 
-module.exports = router;
 module.exports = router;

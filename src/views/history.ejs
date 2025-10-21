@@ -80,13 +80,38 @@
         </div>
 
         <div id="historyList" class="history-grid">
-          <div class="empty-state">
-            <h3>No movies watched yet!</h3>
-            <p>
-              Mark movies as watched from your <a href="/">watchlist</a> to see
-              them here.
-            </p>
-          </div>
+          <% if (watchedMovies && watchedMovies.length > 0) { %>
+            <% watchedMovies.forEach(function(movie) { %>
+              <div class="movie-card" data-id="<%= movie.id %>">
+                <div class="movie-header">
+                  <h3 class="movie-title"><%= movie.title %></h3>
+                  <span class="movie-genre"><%= movie.genre %></span>
+                </div>
+                <div class="movie-details">
+                  <div class="movie-rating">
+                    <span>Rating:</span>
+                    <div class="stars">
+                      <% for(let i = 1; i <= 5; i++) { %>
+                        <%= i <= movie.rating ? '★' : '☆' %>
+                      <% } %>
+                    </div>
+                  </div>
+                  <div class="watch-date">Watched: <%= new Date(movie.watchedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></div>
+                  <% if (movie.review) { %>
+                    <div class="movie-review"><strong>Review:</strong> <%= movie.review %></div>
+                  <% } %>
+                </div>
+                <div class="movie-actions">
+                  <button class="btn-secondary edit-review-btn" data-movie-id="<%= movie.id %>">Edit Review</button>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="empty-state">
+              <h3>No movies watched yet!</h3>
+              <p>Mark movies as watched from your <a href="/">watchlist</a> to see them here.</p>
+            </div>
+          <% } %>
         </div>
       </section>
 

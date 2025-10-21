@@ -1,129 +1,53 @@
 /**
- * Express Application Configuration
+ * Main Application File
  *
- * This file configures:
- * - Express middleware (Helmet, sessions, CSRF protection)
- * - View engine (EJS)
- * - Static file serving
- * - Routes
- * - Error handling
+ * Sets up the Express server, middleware, and routes
  */
 
 const express = require('express');
 const path = require('path');
-const helmet = require('helmet');
-const session = require('express-session');
-const csrf = require('csurf');
-
-// Initialize Express app
+const bodyParser = require('body-parser');
 const app = express();
 
-// Security middleware - Helmet
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-      },
-    },
-  })
-);
+// Import routes
+const mainRoutes = require('./routes/index');
+const apiRoutes = require('./routes/api');
 
-// View engine setup - EJS
-app.set('view engine', 'ejs');
+// View engine setup
 app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Static files
+// Middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session configuration
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    },
-  })
-);
-
-// CSRF protection
-// Note: Apply this after session middleware
-const csrfProtection = csrf({ cookie: false });
-
-// Make CSRF token available to all views
-app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
-  next();
-});
-
-// Routes - Import from routes directory for better organization
-const indexRouter = require('./routes/index');
-
-// Apply routes
-app.use('/', csrfProtection, indexRouter);
+// Routes
+app.use('/', mainRoutes);
+app.use('/api', apiRoutes);
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).render('error', {
-    title: 'Page Not Found',
-    message: 'The page you are looking for does not exist.',
-    error: { status: 404 },
+    title: '404 - Page Not Found',
+    message:
+      'The page you are looking for might have been removed or is temporarily unavailable.',
   });
 });
 
 // Error handler
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, _next) => {
-  // Log error in development
-  if (process.env.NODE_ENV === 'development') {
-    console.error(err.stack);
-  }
-
-  // Set locals, only providing error details in development
-  res.locals.message = err.message;
-  res.locals.error = process.env.NODE_ENV === 'development' ? err : {};
-
-  // Render error page
-  res.status(err.status || 500);
-  res.render('error', {
-    title: 'Error',
-    message: err.message,
-    error: res.locals.error,
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).render('error', {
+    title: '500 - Server Error',
+    message: 'Something went wrong on our end. Please try again later.',
   });
 });
 
-module.exports = app;
-
-// Error handler
-
-app.use((err, req, res, _next) => {
-  // Log error in development
-  if (process.env.NODE_ENV === 'development') {
-    console.error(err.stack);
-  }
-
-  // Set locals, only providing error details in development
-  res.locals.message = err.message;
-  res.locals.error = process.env.NODE_ENV === 'development' ? err : {};
-
-  // Render error page
-  res.status(err.status || 500);
-  res.render('error', {
-    title: 'Error',
-    message: err.message,
-    error: res.locals.error,
-  });
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;

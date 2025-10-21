@@ -186,86 +186,28 @@ function showNotification(message, type = 'info') {
   }, 3000);
 }
 
-// Movie Watchlist App JavaScript
+// Movie Watchlist App JavaScript - Data comes from server via EJS
+// Retrieve the data that was passed from the controller to the EJS template
+let watchlistMovies = [];
+let watchedMovies = [];
 
-// Sample data for demonstration
-let watchlistMovies = [
-  {
-    id: 1,
-    title: 'The Matrix',
-    genre: 'sci-fi',
-    desireScale: 5,
-    dateAdded: '2024-01-15',
-    watched: false,
-  },
-  {
-    id: 2,
-    title: 'Inception',
-    genre: 'sci-fi',
-    desireScale: 5,
-    dateAdded: '2024-01-20',
-    watched: false,
-  },
-  {
-    id: 3,
-    title: 'The Dark Knight',
-    genre: 'action',
-    desireScale: 5,
-    dateAdded: '2024-01-25',
-    watched: false,
-  },
-  {
-    id: 4,
-    title: 'Pulp Fiction',
-    genre: 'drama',
-    desireScale: 4,
-    dateAdded: '2024-02-01',
-    watched: false,
-  },
-  {
-    id: 5,
-    title: 'The Shawshank Redemption',
-    genre: 'drama',
-    desireScale: 5,
-    dateAdded: '2024-02-05',
-    watched: false,
-  },
-  {
-    id: 6,
-    title: 'Interstellar',
-    genre: 'sci-fi',
-    desireScale: 4,
-    dateAdded: '2024-02-10',
-    watched: false,
-  },
-];
+// Try to get data from the EJS-rendered page
+document.addEventListener('DOMContentLoaded', function () {
+  // Get watchlist data from the page (provided by controller via EJS)
+  try {
+    const moviesDataElement = document.getElementById('movies-data');
+    if (moviesDataElement) {
+      watchlistMovies = JSON.parse(moviesDataElement.textContent);
+    }
 
-let watchedMovies = [
-  {
-    id: 101,
-    title: 'Avengers: Endgame',
-    genre: 'action',
-    watchedDate: '2024-01-10',
-    rating: 5,
-    review: 'Epic conclusion to the Marvel saga. Absolutely loved it!',
-  },
-  {
-    id: 102,
-    title: 'Parasite',
-    genre: 'thriller',
-    watchedDate: '2024-01-18',
-    rating: 5,
-    review: 'Brilliant social commentary with incredible cinematography.',
-  },
-  {
-    id: 103,
-    title: 'The Grand Budapest Hotel',
-    genre: 'comedy',
-    watchedDate: '2024-02-02',
-    rating: 4,
-    review: "Wes Anderson's visual masterpiece with great humor.",
-  },
-];
+    const watchedDataElement = document.getElementById('watched-data');
+    if (watchedDataElement) {
+      watchedMovies = JSON.parse(watchedDataElement.textContent);
+    }
+  } catch (error) {
+    console.error('Error parsing movie data:', error);
+  }
+});
 
 // DOM elements
 const movieForm = document.querySelector('.movie-form');
@@ -294,130 +236,14 @@ function initializeApp() {
   initializeTheme();
 }
 
-function initializeHome() {
-  if (!movieForm) return;
-
-  // Event listeners
-  movieForm.addEventListener('submit', handleAddMovie);
-  if (filterName) filterName.addEventListener('input', filterMovies);
-  if (filterGenre) filterGenre.addEventListener('change', filterMovies);
-  if (filterDesire) filterDesire.addEventListener('change', filterMovies);
-  if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
-  if (clearListBtn) clearListBtn.addEventListener('click', clearAllMovies);
-
-  // Initial render
-  renderMovies();
-}
-
-function handleAddMovie(e) {
-  e.preventDefault();
-
-  const title = document.getElementById('movieTitle').value;
-  const genre = document.getElementById('movieGenre').value;
-  const desireScale = document.getElementById('desireScale').value;
-
-  if (!title || !genre || !desireScale) return;
-
-  const newMovie = {
-    id: Date.now(),
-    title,
-    genre,
-    desireScale: parseInt(desireScale),
-    dateAdded: new Date().toISOString().split('T')[0],
-    watched: false,
-  };
-
-  watchlistMovies.push(newMovie);
-  renderMovies();
-  movieForm.reset();
-}
-
-function renderMovies() {
-  if (!movieList) return;
-
-  if (watchlistMovies.length === 0) {
-    movieList.innerHTML = `
-      <div class="empty-state">
-        <h3>No movies in your watchlist yet!</h3>
-        <p>Add your first movie above to get started.</p>
-      </div>
-    `;
-    return;
-  }
-
-  movieList.innerHTML = watchlistMovies
-    .map(
-      (movie) => `
-    <div class="movie-card" data-id="${movie.id}">
-      <div class="movie-header">
-        <h3 class="movie-title">${movie.title}</h3>
-        <span class="movie-genre">${movie.genre}</span>
-      </div>
-      <div class="movie-details">
-        <div class="desire-scale">
-          <span>Desire to watch:</span>
-          <div class="stars">${'★'.repeat(movie.desireScale)}${'☆'.repeat(5 - movie.desireScale)}</div>
-        </div>
-        <div class="watch-date">Added: ${formatDate(movie.dateAdded)}</div>
-      </div>
-      <div class="movie-actions">
-        <button onclick="markAsWatched(${movie.id})" class="btn-primary">Mark Watched</button>
-        <button onclick="removeMovie(${movie.id})" class="btn-danger">Remove</button>
-      </div>
-    </div>
-  `
-    )
-    .join('');
-}
-
-function markAsWatched(id) {
-  const movie = watchlistMovies.find((m) => m.id === id);
-  if (!movie) return;
-
-  // Move to watched list
-  const watchedMovie = {
-    ...movie,
-    id: Date.now() + Math.random(),
-    watchedDate: new Date().toISOString().split('T')[0],
-    rating: 0,
-    review: '',
-  };
-
-  watchedMovies.push(watchedMovie);
-  watchlistMovies = watchlistMovies.filter((m) => m.id !== id);
-  renderMovies();
-}
-
-function removeMovie(id) {
-  watchlistMovies = watchlistMovies.filter((m) => m.id !== id);
-  renderMovies();
-}
-
-function filterMovies() {
-  const nameFilter = filterName?.value.toLowerCase() || '';
-  const genreFilter = filterGenre?.value || '';
-  const desireFilter = filterDesire?.value || '';
-
-  const filtered = watchlistMovies.filter((movie) => {
-    const matchesName = movie.title.toLowerCase().includes(nameFilter);
-    const matchesGenre = !genreFilter || movie.genre === genreFilter;
-    const matchesDesire =
-      !desireFilter || movie.desireScale.toString() === desireFilter;
-
-    return matchesName && matchesGenre && matchesDesire;
-  });
-
-  renderFilteredMovies(filtered);
-}
-
-function renderFilteredMovies(movies) {
+function renderMovies(movies = []) {
   if (!movieList) return;
 
   if (movies.length === 0) {
     movieList.innerHTML = `
       <div class="empty-state">
-        <h3>No movies match your filters</h3>
-        <p>Try adjusting your search criteria.</p>
+        <h3>No movies in your watchlist yet!</h3>
+        <p>Add your first movie above to get started.</p>
       </div>
     `;
     return;
@@ -439,98 +265,373 @@ function renderFilteredMovies(movies) {
         <div class="watch-date">Added: ${formatDate(movie.dateAdded)}</div>
       </div>
       <div class="movie-actions">
-        <button onclick="markAsWatched(${movie.id})" class="btn-primary">Mark Watched</button>
-        <button onclick="removeMovie(${movie.id})" class="btn-danger">Remove</button>
+        <button class="btn-primary mark-watched-btn" data-movie-id="${movie.id}">Mark Watched</button>
+        <button class="btn-danger remove-movie-btn" data-movie-id="${movie.id}">Remove</button>
       </div>
     </div>
   `
     )
     .join('');
+
+  // Add event listeners to buttons (no inline onclick)
+  document.querySelectorAll('.mark-watched-btn').forEach((btn) => {
+    btn.addEventListener('click', handleMarkAsWatched);
+  });
+
+  document.querySelectorAll('.remove-movie-btn').forEach((btn) => {
+    btn.addEventListener('click', handleRemoveMovie);
+  });
 }
 
-function clearFilters() {
-  if (filterName) filterName.value = '';
-  if (filterGenre) filterGenre.value = '';
-  if (filterDesire) filterDesire.value = '';
-  renderMovies();
-}
+async function handleAddMovie(e) {
+  e.preventDefault();
 
-function clearAllMovies() {
-  if (
-    confirm('Are you sure you want to clear all movies from your watchlist?')
-  ) {
-    watchlistMovies = [];
-    renderMovies();
+  const title = document.getElementById('movieTitle').value;
+  const genre = document.getElementById('movieGenre').value;
+  const desireScale = document.getElementById('desireScale').value;
+
+  if (!title || !genre || !desireScale) return;
+
+  try {
+    const response = await fetch('/api/movies', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, genre, desireScale }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      movieForm.reset();
+      loadMovies(); // Refresh the movie list
+      showNotification('Movie added successfully!', 'success');
+    } else {
+      showNotification('Failed to add movie', 'error');
+    }
+  } catch (error) {
+    console.error('Error adding movie:', error);
+    showNotification('Error adding movie', 'error');
   }
+}
+
+async function handleMarkAsWatched(e) {
+  const movieId = e.target.getAttribute('data-movie-id');
+
+  try {
+    const response = await fetch(`/api/movies/${movieId}/watched`, {
+      method: 'PUT',
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      loadMovies(); // Refresh the movie list
+      showNotification('Movie marked as watched!', 'success');
+    } else {
+      showNotification('Failed to mark movie as watched', 'error');
+    }
+  } catch (error) {
+    console.error('Error marking movie as watched:', error);
+    showNotification('Error updating movie', 'error');
+  }
+}
+
+async function handleRemoveMovie(e) {
+  const movieId = e.target.getAttribute('data-movie-id');
+
+  if (!confirm('Are you sure you want to remove this movie?')) return;
+
+  try {
+    const response = await fetch(`/api/movies/${movieId}`, {
+      method: 'DELETE',
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      loadMovies(); // Refresh the movie list
+      showNotification('Movie removed successfully!', 'success');
+    } else {
+      showNotification('Failed to remove movie', 'error');
+    }
+  } catch (error) {
+    console.error('Error removing movie:', error);
+    showNotification('Error removing movie', 'error');
+  }
+}
+
+async function loadMovies() {
+  try {
+    const response = await fetch('/api/movies');
+    const data = await response.json();
+    renderMovies(data.movies);
+  } catch (error) {
+    console.error('Error loading movies:', error);
+    // Don't render again here since we already rendered the sample data
+    // The sample data is already showing from initializeHome()
+  }
+}
+
+function initializeHome() {
+  if (!movieForm) return;
+
+  // Event listeners using addEventListener (no inline onclick)
+  movieForm.addEventListener('submit', handleAddMovie);
+  if (filterName) filterName.addEventListener('input', filterMovies);
+  if (filterGenre) filterGenre.addEventListener('change', filterMovies);
+  if (filterDesire) filterDesire.addEventListener('change', filterMovies);
+  if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+  if (clearListBtn) clearListBtn.addEventListener('click', clearAllMovies);
+
+  // Movies are already rendered by EJS from server data
+  // Add event listeners to existing movie cards
+  addMovieCardEventListeners();
+}
+
+function addMovieCardEventListeners() {
+  document.querySelectorAll('.mark-watched-btn').forEach((btn) => {
+    btn.addEventListener('click', handleMarkAsWatched);
+  });
+
+  document.querySelectorAll('.remove-movie-btn').forEach((btn) => {
+    btn.addEventListener('click', handleRemoveMovie);
+  });
 }
 
 // History page functions
 function initializeHistory() {
   const historyList = document.getElementById('historyList');
   const totalWatched = document.getElementById('totalWatched');
+  const filterName = document.getElementById('filterName');
+  const filterGenre = document.getElementById('filterGenre');
+  const filterDateFrom = document.getElementById('filterDateFrom');
+  const filterDateTo = document.getElementById('filterDateTo');
+  const clearFiltersBtn = document.getElementById('clearFilters');
 
   if (!historyList) return;
+
+  // Count watched movies from DOM
+  const movieCards = historyList.querySelectorAll('.movie-card');
 
   if (totalWatched) {
-    totalWatched.textContent = `${watchedMovies.length} movies watched`;
+    totalWatched.textContent = `${movieCards.length} movies watched`;
   }
 
-  renderWatchedMovies();
+  // Add event listeners for history filters
+  if (filterName) filterName.addEventListener('input', filterWatchedMovies);
+  if (filterGenre) filterGenre.addEventListener('change', filterWatchedMovies);
+  if (filterDateFrom)
+    filterDateFrom.addEventListener('change', filterWatchedMovies);
+  if (filterDateTo)
+    filterDateTo.addEventListener('change', filterWatchedMovies);
+  if (clearFiltersBtn)
+    clearFiltersBtn.addEventListener('click', clearHistoryFilters);
+
+  // Add event listeners to edit review buttons
+  document.querySelectorAll('.edit-review-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const movieId = btn.getAttribute('data-movie-id');
+      editReview(movieId);
+    });
+  });
 }
 
-function renderWatchedMovies() {
+function filterWatchedMovies() {
+  const nameFilter =
+    document.getElementById('filterName')?.value.toLowerCase() || '';
+  const genreFilter = document.getElementById('filterGenre')?.value || '';
+  const dateFromFilter = document.getElementById('filterDateFrom')?.value || '';
+  const dateToFilter = document.getElementById('filterDateTo')?.value || '';
+
+  // Get movie cards from DOM
   const historyList = document.getElementById('historyList');
-  if (!historyList) return;
+  const movieCards = historyList.querySelectorAll('.movie-card');
+  let visibleCount = 0;
 
-  if (watchedMovies.length === 0) {
-    historyList.innerHTML = `
-      <div class="empty-state">
-        <h3>No movies watched yet!</h3>
-        <p>Mark movies as watched from your <a href="/">watchlist</a> to see them here.</p>
-      </div>
+  // Filter cards based on criteria
+  movieCards.forEach((card) => {
+    const title = card.querySelector('.movie-title').textContent.toLowerCase();
+    const genre = card.querySelector('.movie-genre').textContent.toLowerCase();
+    const watchDateText = card.querySelector('.watch-date').textContent;
+    // Extract date from "Watched: Mar 15, 2024" format
+    const watchDate = new Date(watchDateText.replace('Watched: ', ''));
+
+    const matchesName = title.includes(nameFilter);
+    const matchesGenre =
+      !genreFilter || genre.includes(genreFilter.toLowerCase());
+
+    let matchesDateRange = true;
+    if (dateFromFilter) {
+      const fromDate = new Date(dateFromFilter);
+      matchesDateRange = matchesDateRange && watchDate >= fromDate;
+    }
+    if (dateToFilter) {
+      const toDate = new Date(dateToFilter);
+      matchesDateRange = matchesDateRange && watchDate <= toDate;
+    }
+
+    if (matchesName && matchesGenre && matchesDateRange) {
+      card.style.display = '';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  // Handle empty state message
+  let emptyState = historyList.querySelector('.empty-state');
+
+  if (visibleCount === 0) {
+    if (!emptyState) {
+      emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      historyList.appendChild(emptyState);
+    }
+
+    emptyState.innerHTML = `
+      <h3>No movies match your filters</h3>
+      <p>Try adjusting your search criteria.</p>
     `;
-    return;
+    emptyState.style.display = 'block';
+  } else if (emptyState) {
+    emptyState.style.display = 'none';
   }
+}
 
-  historyList.innerHTML = watchedMovies
-    .map(
-      (movie) => `
-    <div class="movie-card" data-id="${movie.id}">
-      <div class="movie-header">
-        <h3 class="movie-title">${movie.title}</h3>
-        <span class="movie-genre">${movie.genre}</span>
-      </div>
-      <div class="movie-details">
-        <div class="movie-rating">
-          <span>Rating:</span>
-          <div class="stars">${'★'.repeat(movie.rating)}${'☆'.repeat(5 - movie.rating)}</div>
-        </div>
-        <div class="watch-date">Watched: ${formatDate(movie.watchedDate)}</div>
-        ${movie.review ? `<div class="movie-review"><strong>Review:</strong> ${movie.review}</div>` : ''}
-      </div>
-      <div class="movie-actions">
-        <button onclick="editReview(${movie.id})" class="btn-secondary">Edit Review</button>
-      </div>
-    </div>
-  `
-    )
-    .join('');
+function clearHistoryFilters() {
+  const filterName = document.getElementById('filterName');
+  const filterGenre = document.getElementById('filterGenre');
+  const filterDateFrom = document.getElementById('filterDateFrom');
+  const filterDateTo = document.getElementById('filterDateTo');
+
+  if (filterName) filterName.value = '';
+  if (filterGenre) filterGenre.value = '';
+  if (filterDateFrom) filterDateFrom.value = '';
+  if (filterDateTo) filterDateTo.value = '';
+
+  // Show all movie cards
+  const historyList = document.getElementById('historyList');
+  const movieCards = historyList.querySelectorAll('.movie-card');
+
+  movieCards.forEach((card) => {
+    card.style.display = '';
+  });
+
+  // Hide any empty state message
+  const emptyState = historyList.querySelector('.empty-state');
+  if (emptyState) {
+    emptyState.style.display = 'none';
+  }
+}
+
+function filterMovies() {
+  const nameFilter = filterName?.value.toLowerCase() || '';
+  const genreFilter = filterGenre?.value || '';
+  const desireFilter = filterDesire?.value || '';
+
+  // Get movie cards from DOM
+  const movieCards = movieList.querySelectorAll('.movie-card');
+  let visibleCount = 0;
+
+  movieCards.forEach((card) => {
+    const title = card.querySelector('.movie-title').textContent.toLowerCase();
+    const genre = card.querySelector('.movie-genre').textContent.toLowerCase();
+    const stars = card.querySelector('.stars').textContent;
+    const desireScale = (stars.match(/★/g) || []).length;
+
+    const matchesName = title.includes(nameFilter);
+    const matchesGenre =
+      !genreFilter || genre.includes(genreFilter.toLowerCase());
+    const matchesDesire =
+      !desireFilter || desireScale === parseInt(desireFilter);
+
+    if (matchesName && matchesGenre && matchesDesire) {
+      card.style.display = '';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  // Handle empty state message
+  let emptyState = movieList.querySelector('.empty-state');
+
+  if (visibleCount === 0 && movieCards.length > 0) {
+    if (!emptyState) {
+      emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      movieList.appendChild(emptyState);
+    }
+
+    emptyState.innerHTML = `
+      <h3>No movies match your filters</h3>
+      <p>Try adjusting your search criteria.</p>
+    `;
+    emptyState.style.display = 'block';
+  } else if (emptyState) {
+    emptyState.style.display = 'none';
+  }
+}
+
+function clearFilters() {
+  if (filterName) filterName.value = '';
+  if (filterGenre) filterGenre.value = '';
+  if (filterDesire) filterDesire.value = '';
+
+  // Show all movie cards
+  const movieCards = movieList.querySelectorAll('.movie-card');
+  movieCards.forEach((card) => {
+    card.style.display = '';
+  });
+
+  // Hide any empty state message
+  const emptyState = movieList.querySelector('.empty-state');
+  if (emptyState) {
+    emptyState.style.display = 'none';
+  }
 }
 
 function editReview(id) {
-  // This would open a modal in a real app
-  const movie = watchedMovies.find((m) => m.id === id);
-  if (!movie) return;
+  // Get the movie card element by id
+  const card = document.querySelector(`.movie-card[data-id="${id}"]`);
+  if (!card) return;
 
-  const newReview = prompt('Edit your review:', movie.review);
-  const newRating = prompt('Edit your rating (1-5):', movie.rating);
+  // Get current values from the DOM
+  const currentReview =
+    card.querySelector('.movie-review')?.textContent.replace('Review: ', '') ||
+    '';
+  const currentRating =
+    (card.querySelector('.stars')?.textContent.match(/★/g) || []).length || 0;
 
-  if (newReview !== null) movie.review = newReview;
-  if (newRating !== null && newRating >= 1 && newRating <= 5) {
-    movie.rating = parseInt(newRating);
+  // Show modal or use prompt for simplicity
+  const newReview = prompt('Edit your review:', currentReview);
+  const newRating = prompt('Edit your rating (1-5):', currentRating);
+
+  if (newReview !== null) {
+    // Update review in the DOM
+    let reviewElement = card.querySelector('.movie-review');
+    if (!reviewElement) {
+      reviewElement = document.createElement('div');
+      reviewElement.className = 'movie-review';
+      card.querySelector('.movie-details').appendChild(reviewElement);
+    }
+    reviewElement.innerHTML = `<strong>Review:</strong> ${newReview}`;
   }
 
-  renderWatchedMovies();
+  if (
+    newRating !== null &&
+    parseInt(newRating) >= 1 &&
+    parseInt(newRating) <= 5
+  ) {
+    // Update stars in the DOM
+    const starsElement = card.querySelector('.stars');
+    if (starsElement) {
+      const rating = parseInt(newRating);
+      starsElement.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    }
+  }
 }
 
 // Settings page functions
@@ -539,9 +640,11 @@ function initializeSettings() {
   const uploadAvatar = document.getElementById('uploadAvatar');
   const avatarInput = document.getElementById('avatarInput');
 
-  themeInputs.forEach((input) => {
-    input.addEventListener('change', handleThemeChange);
-  });
+  if (themeInputs) {
+    themeInputs.forEach((input) => {
+      input.addEventListener('change', handleThemeChange);
+    });
+  }
 
   if (uploadAvatar && avatarInput) {
     uploadAvatar.addEventListener('click', () => avatarInput.click());
@@ -549,31 +652,49 @@ function initializeSettings() {
   }
 }
 
+// Handle theme change
 function handleThemeChange(e) {
   const theme = e.target.value;
   document.documentElement.setAttribute('data-theme', theme);
 
-  // Check if localStorage is available
+  // Store theme preference if localStorage is available
   if (typeof Storage !== 'undefined') {
     localStorage.setItem('theme', theme);
   }
+
+  showNotification(`Theme changed to ${theme}`, 'success');
 }
 
+// Handle avatar upload
 function handleAvatarUpload(e) {
   const file = e.target.files[0];
-  if (file) {
-    // Check if FileReader is available
-    if (typeof FileReader !== 'undefined') {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const avatar = document.getElementById('profileAvatar');
-        if (avatar) avatar.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    } else {
-      console.error('FileReader not supported in this browser');
-    }
+  if (!file) return;
+
+  // Check if FileReader API is available
+  if (typeof FileReader === 'undefined') {
+    showNotification('File upload not supported in your browser', 'error');
+    return;
   }
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    showNotification('Please select an image file', 'error');
+    return;
+  }
+
+  // Read and display the file
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const avatarImg = document.getElementById('profileAvatar');
+    if (avatarImg) {
+      avatarImg.src = e.target.result;
+      showNotification('Avatar updated successfully', 'success');
+    }
+  };
+  reader.onerror = function () {
+    showNotification('Error reading file', 'error');
+  };
+  reader.readAsDataURL(file);
 }
 
 // Theme initialization
@@ -593,8 +714,34 @@ function initializeTheme() {
   if (themeInput) themeInput.checked = true;
 }
 
+// Clear all movies from watchlist
+function clearAllMovies() {
+  if (
+    confirm('Are you sure you want to clear all movies from your watchlist?')
+  ) {
+    // In a real app, this would make an API call to clear server data
+    try {
+      // Clear DOM representation
+      if (movieList) {
+        movieList.innerHTML = `
+          <div class="empty-state">
+            <h3>No movies in your watchlist yet!</h3>
+            <p>Add your first movie above to get started.</p>
+          </div>
+        `;
+      }
+      showNotification('Watchlist cleared successfully', 'success');
+    } catch (error) {
+      console.error('Error clearing movies:', error);
+      showNotification('Error clearing watchlist', 'error');
+    }
+  }
+}
+
 // Utility functions
 function formatDate(dateString) {
+  if (!dateString) return '';
+
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
