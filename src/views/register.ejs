@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> - Movie Watchlist</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <div class="settings-container" style="margin-top: 4rem">
+        <section class="profile-section">
+          <div class="hero" style="padding: 1rem 0 2rem 0; margin-bottom: 2rem;">
+            <h1>Create an Account</h1>
+            <p>Join to start building your watchlist</p>
+          </div>
+
+          <form
+            id="registerForm"
+            class="settings-form"
+            method="POST"
+            action="/users/register"
+          >
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                required
+                minlength="3"
+                placeholder="e.g., moviefan123"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                placeholder="e.g., name@example.com"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                minlength="6"
+                placeholder="At least 6 characters"
+              />
+            </div>
+
+            <button type="submit" class="btn-primary">Create Account</button>
+          </form>
+
+          <p class="text-center mt-2">
+            Already have an account? <a href="/users/login">Login here</a>
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <footer style="margin-top: 3rem;">
+      <div class="container">
+        <p>&copy; 2025 Movie Watchlist App. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>

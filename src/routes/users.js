@@ -22,14 +22,24 @@
  * module.exports = router;
  */
 
+/* src/routes/users.js */
 const express = require('express');
 const router = express.Router();
+const userController = require('../controllers/userController');
 
-// Import controllers
-// const userController = require('../controllers/userController');
+// GET /users/login - Display login form
+router.get('/login', userController.getLogin);
 
-// Define routes
-// router.get('/register', userController.getRegister);
-// router.post('/register', userController.postRegister);
+// POST /users/login - Process login form
+router.post('/login', userController.postLogin);
+
+// GET /users/register - Display registration form
+router.get('/register', userController.getRegister);
+
+// POST /users/register - Process registration form
+router.post('/register', userController.postRegister);
+
+// POST /users/logout - Logout user
+router.post('/logout', userController.postLogout);
 
 module.exports = router;
