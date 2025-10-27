@@ -52,7 +52,9 @@
 }
 
 body {
+  /* Updated font stack */
   font-family:
+    'Poppins',
     'Inter',
     -apple-system,
     BlinkMacSystemFont,
@@ -61,6 +63,16 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   transition: all 0.3s ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700; /* Use the bold font we imported */
+  color: var(--text-primary);
 }
 
 a {
