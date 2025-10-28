@@ -375,17 +375,56 @@ async function loadMovies() {
 }
 
 function initializeHome() {
-  if (!movieForm) return;
+  if (!document.getElementById('movieList')) return;
 
-  // Event listeners using addEventListener (no inline onclick)
-  movieForm.addEventListener('submit', handleAddMovie);
+  // Get form elements
+  const movieForm = document.querySelector('#addMovieForm .movie-form');
+  const addMovieBtn = document.getElementById('addMovieBtn');
+  const filterMoviesBtn = document.getElementById('filterMoviesBtn');
+  const addMovieForm = document.getElementById('addMovieForm');
+  const filterForm = document.getElementById('filterForm');
+  const cancelAdd = document.getElementById('cancelAdd');
+  const cancelFilter = document.getElementById('cancelFilter');
+
+  // Form toggle functionality
+  if (addMovieBtn) {
+    addMovieBtn.addEventListener('click', () => {
+      filterForm.style.display = 'none';
+      addMovieForm.style.display =
+        addMovieForm.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+
+  if (filterMoviesBtn) {
+    filterMoviesBtn.addEventListener('click', () => {
+      addMovieForm.style.display = 'none';
+      filterForm.style.display =
+        filterForm.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+
+  if (cancelAdd) {
+    cancelAdd.addEventListener('click', () => {
+      addMovieForm.style.display = 'none';
+      if (movieForm) movieForm.reset();
+    });
+  }
+
+  if (cancelFilter) {
+    cancelFilter.addEventListener('click', () => {
+      filterForm.style.display = 'none';
+      clearFilters();
+    });
+  }
+
+  // Event listeners
+  if (movieForm) movieForm.addEventListener('submit', handleAddMovie);
   if (filterName) filterName.addEventListener('input', filterMovies);
   if (filterGenre) filterGenre.addEventListener('change', filterMovies);
   if (filterDesire) filterDesire.addEventListener('change', filterMovies);
   if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
   if (clearListBtn) clearListBtn.addEventListener('click', clearAllMovies);
 
-  // Movies are already rendered by EJS from server data
   // Add event listeners to existing movie cards
   addMovieCardEventListeners();
 }
