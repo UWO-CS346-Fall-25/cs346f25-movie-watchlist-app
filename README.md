@@ -4,6 +4,11 @@ A web application that allows users to track movies they want to watch and have 
 
 ## Pages and Features
 
+### feature/week9 improvements
+
+Some of the requirements were hit in the previous deliverable. In addition to this, we implemented the login and registration form page. We changed the font, and made filter inputs hidden but expandable.
+We have several hover over effects throughout the app and all pages are responsive to screen size.
+
 ### Home Page
 
 **Purpose:** Main landing page for users to view and manage their movie watchlist.
