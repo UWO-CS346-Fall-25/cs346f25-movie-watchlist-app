@@ -25,6 +25,8 @@ We have several hover over effects throughout the app and all pages are responsi
   - Options to mark as watched or remove from list
 - Empty state display when no movies are added
 
+![alt text](homepage.png)
+
 ### History Page
 
 **Purpose:** Shows all movies that have been watched, along with user ratings and reviews.
@@ -40,6 +42,7 @@ We have several hover over effects throughout the app and all pages are responsi
   - User's review
   - Option to edit review and rating
 - Statistics showing total movies watched
+![alt text](historypage.png)
 
 ### Settings Page
 
@@ -57,6 +60,8 @@ We have several hover over effects throughout the app and all pages are responsi
 - Account actions:
   - Clear watchlist data
   - Delete account options
+
+![alt text](settingspage.png)
 
 ## Technology Stack
 

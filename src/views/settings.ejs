@@ -41,9 +41,10 @@
             <div class="avatar-container">
               <img
                 id="profileAvatar"
-                src="/images/default-avatar.png"
+                src="/images/default-avatar.svg"
                 alt="Profile Picture"
                 class="avatar"
+                onerror="this.src='/images/default-avatar.svg'"
               />
               <div class="avatar-upload">
                 <input
@@ -141,8 +142,9 @@
               class="form-group"
               style="
                 flex-direction: row;
-                justify-content: space-between;
+                justify-content: flex-start;
                 align-items: center;
+                gap: 2rem;
               "
             >
               <label
@@ -159,9 +161,9 @@
           <div
             class="danger-zone"
             style="
-              margin-top: 2rem;
+              margin-top: 1rem;
               border-top: 1px solid var(--border);
-              padding-top: 2rem;
+              padding-top: 1rem;
             "
           >
             <h3>Danger Zone</h3>
