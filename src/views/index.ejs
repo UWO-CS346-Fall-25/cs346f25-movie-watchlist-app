@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home - Movie Watchlist</title>
     <link rel="stylesheet" href="/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
   </head>
   <body>
     <header>
@@ -15,17 +22,6 @@
             <li><a href="/" class="active">Home</a></li>
             <li><a href="/history">History</a></li>
             <li><a href="/settings">Settings</a></li>
-            <!-- <% if (user) { %>
-            <li>
-              <form action="/users/logout" method="POST" style="display: inline;">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <button type="submit" class="btn-link">Logout</button>
-              </form>
-            </li>
-          <% } else { %>
-            <li><a href="/users/login">Login</a></li>
-            <li><a href="/users/register">Register</a></li>
-          <% } %> -->
           </ul>
         </div>
       </nav>
@@ -37,71 +33,90 @@
         <p>Discover, track, and review your favorite movies</p>
       </section>
 
-      <section class="add-movie">
-        <h2>Add New Movie</h2>
-        <form class="movie-form">
-          <div class="form-group">
-            <input
-              type="text"
-              id="movieTitle"
-              placeholder="Movie Title"
-              required
-            />
-            <select id="movieGenre" required>
-              <option value="">Select Genre</option>
-              <option value="action">Action</option>
-              <option value="comedy">Comedy</option>
-              <option value="drama">Drama</option>
-              <option value="horror">Horror</option>
-              <option value="romance">Romance</option>
-              <option value="sci-fi">Sci-Fi</option>
-              <option value="thriller">Thriller</option>
-            </select>
-            <select id="desireScale" required>
-              <option value="">Desire to Watch</option>
-              <option value="1">1 - Low</option>
-              <option value="2">2</option>
-              <option value="3">3 - Medium</option>
-              <option value="4">4</option>
-              <option value="5">5 - High</option>
-            </select>
-            <button type="submit" class="btn-primary">Add Movie</button>
-          </div>
-        </form>
-      </section>
+      <section class="action-controls">
+        <div class="control-buttons">
+          <button id="addMovieBtn" class="btn-primary">
+            <span class="btn-icon">+</span>
+            Add New Movie
+          </button>
+          <button id="filterMoviesBtn" class="btn-secondary">
+            <span class="btn-icon">🔍</span>
+            Filter Movies
+          </button>
+        </div>
 
-      <section class="filters">
-        <h2>Filter Movies</h2>
-        <form class="movie-form">
-          <div class="form-group">
-            <input
-              type="text"
-              id="filterName"
-              placeholder="Search by name..."
-            />
-            <select id="filterGenre">
-              <option value="">All Genres</option>
-              <option value="action">Action</option>
-              <option value="comedy">Comedy</option>
-              <option value="drama">Drama</option>
-              <option value="horror">Horror</option>
-              <option value="romance">Romance</option>
-              <option value="sci-fi">Sci-Fi</option>
-              <option value="thriller">Thriller</option>
-            </select>
-            <select id="filterDesire">
-              <option value="">All Desire Levels</option>
-              <option value="1">1 - Low</option>
-              <option value="2">2</option>
-              <option value="3">3 - Medium</option>
-              <option value="4">4</option>
-              <option value="5">5 - High</option>
-            </select>
-            <button id="clearFilters" class="btn-secondary">
-              Clear Filters
-            </button>
-          </div>
-        </form>
+        <!-- Add Movie Form (Initially Hidden) -->
+        <div id="addMovieForm" class="form-panel" style="display: none;">
+          <h3>Add New Movie</h3>
+          <form class="movie-form">
+            <div class="form-group">
+              <input
+                type="text"
+                id="movieTitle"
+                placeholder="Movie Title"
+                required
+              />
+              <select id="movieGenre" required>
+                <option value="">Select Genre</option>
+                <option value="action">Action</option>
+                <option value="comedy">Comedy</option>
+                <option value="drama">Drama</option>
+                <option value="horror">Horror</option>
+                <option value="romance">Romance</option>
+                <option value="sci-fi">Sci-Fi</option>
+                <option value="thriller">Thriller</option>
+              </select>
+              <select id="desireScale" required>
+                <option value="">Desire to Watch</option>
+                <option value="1">1 - Low</option>
+                <option value="2">2</option>
+                <option value="3">3 - Medium</option>
+                <option value="4">4</option>
+                <option value="5">5 - High</option>
+              </select>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Add Movie</button>
+                <button type="button" id="cancelAdd" class="btn-secondary">Cancel</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Filter Form (Initially Hidden) -->
+        <div id="filterForm" class="form-panel" style="display: none;">
+          <h3>Filter Movies</h3>
+          <form class="filter-form">
+            <div class="form-group">
+              <input
+                type="text"
+                id="filterName"
+                placeholder="Search by name..."
+              />
+              <select id="filterGenre">
+                <option value="">All Genres</option>
+                <option value="action">Action</option>
+                <option value="comedy">Comedy</option>
+                <option value="drama">Drama</option>
+                <option value="horror">Horror</option>
+                <option value="romance">Romance</option>
+                <option value="sci-fi">Sci-Fi</option>
+                <option value="thriller">Thriller</option>
+              </select>
+              <select id="filterDesire">
+                <option value="">All Desire Levels</option>
+                <option value="1">1 - Low</option>
+                <option value="2">2</option>
+                <option value="3">3 - Medium</option>
+                <option value="4">4</option>
+                <option value="5">5 - High</option>
+              </select>
+              <div class="form-actions">
+                <button type="button" id="clearFilters" class="btn-secondary">Clear Filters</button>
+                <button type="button" id="cancelFilter" class="btn-secondary">Cancel</button>
+              </div>
+            </div>
+          </form>
+        </div>
       </section>
 
       <section class="watchlist">

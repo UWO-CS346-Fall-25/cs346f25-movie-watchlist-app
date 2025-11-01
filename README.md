@@ -4,6 +4,11 @@ A web application that allows users to track movies they want to watch and have 
 
 ## Pages and Features
 
+### feature/week9 improvements
+
+Some of the requirements were hit in the previous deliverable. In addition to this, we implemented the login and registration form page. We changed the font, and made filter inputs hidden but expandable.
+We have several hover over effects throughout the app and all pages are responsive to screen size.
+
 ### Home Page
 
 **Purpose:** Main landing page for users to view and manage their movie watchlist.
@@ -20,6 +25,8 @@ A web application that allows users to track movies they want to watch and have 
   - Options to mark as watched or remove from list
 - Empty state display when no movies are added
 
+![alt text](homepage.png)
+
 ### History Page
 
 **Purpose:** Shows all movies that have been watched, along with user ratings and reviews.
@@ -35,6 +42,7 @@ A web application that allows users to track movies they want to watch and have 
   - User's review
   - Option to edit review and rating
 - Statistics showing total movies watched
+![alt text](historypage.png)
 
 ### Settings Page
 
@@ -52,6 +60,8 @@ A web application that allows users to track movies they want to watch and have 
 - Account actions:
   - Clear watchlist data
   - Delete account options
+
+![alt text](settingspage.png)
 
 ## Technology Stack
 

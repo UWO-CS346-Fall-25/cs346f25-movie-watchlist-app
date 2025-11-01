@@ -5,28 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>History - Movie Watchlist</title>
     <link rel="stylesheet" href="/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <header>
       <nav>
         <div class="container">
           <a href="/" class="logo">Movie Watchlist</a>
-          <ul class="nav-links">
-            <li><a href="/">Home</a></li>
-            <li><a href="/history" class="active">History</a></li>
-            <li><a href="/settings">Settings</a></li>
-            <!-- <% if (user) { %>
-            <li>
-              <form action="/users/logout" method="POST" style="display: inline;">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <button type="submit" class="btn-link">Logout</button>
-              </form>
-            </li>
-          <% } else { %>
-            <li><a href="/users/login">Login</a></li>
-            <li><a href="/users/register">Register</a></li>
-          <% } %> -->
-          </ul>
+            <ul class="nav-links">
+              <li><a href="/">Home</a></li>
+              <li><a href="/history" class="active">History</a></li>
+              <li><a href="/settings">Settings</a></li>
+            </ul>
         </div>
       </nav>
     </header>
@@ -37,7 +32,7 @@
         <p>Your watched movies and reviews</p>
       </section>
 
-      <section class="filters">
+      <section class="filters-section">
         <h2>Filter History</h2>
         <form class="movie-form">
           <div class="form-group">
