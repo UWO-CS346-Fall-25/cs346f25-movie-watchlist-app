@@ -1,7 +1,7 @@
 /**
- * Movie Controller
+ * Movie Controller - Supabase Version with Authentication
  *
- * Handles movie-related operations:
+ * Handles movie-related operations for authenticated users:
  * - Adding movies
  * - Marking as watched
  * - Removing movies
@@ -10,70 +10,147 @@
 
 const movieModel = require('../models/movieModel');
 
+// Get user ID from session
+function getUserId(req) {
+  return req.session?.user?.id || null;
+}
+
 // Get all movies in watchlist
-exports.getMovies = (req, res) => {
-  res.json({
-    success: true,
-    movies: movieModel.getAllWatchlistMovies(),
-  });
+exports.getMovies = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    const movies = await movieModel.getAllWatchlistMovies(userId);
+    res.json({
+      success: true,
+      movies: movies,
+    });
+  } catch (error) {
+    console.error('Error fetching movies:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch movies',
+    });
+  }
 };
 
 // Get all watched movies
-exports.getWatchedMovies = (req, res) => {
-  res.json({
-    success: true,
-    movies: movieModel.getAllWatchedMovies(),
-  });
+exports.getWatchedMovies = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    const movies = await movieModel.getAllWatchedMovies(userId);
+    res.json({
+      success: true,
+      movies: movies,
+    });
+  } catch (error) {
+    console.error('Error fetching watched movies:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch watched movies',
+    });
+  }
 };
 
 // Add a new movie
-exports.addMovie = (req, res) => {
-  const { title, genre, desireScale } = req.body;
+exports.addMovie = async (req, res) => {
+  try {
+    const { title, genre, desireScale } = req.body;
+    const userId = getUserId(req);
 
-  if (!title || !genre || !desireScale) {
-    return res
-      .status(400)
-      .json({ success: false, error: 'Missing required fields' });
+    if (!title || !genre || !desireScale) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Missing required fields' });
+    }
+
+    const newMovie = await movieModel.addMovie(
+      { title, genre, desireScale },
+      userId
+    );
+
+    if (!newMovie) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to add movie',
+      });
+    }
+
+    res.json({ success: true, movie: newMovie });
+  } catch (error) {
+    console.error('Error adding movie:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add movie',
+    });
   }
-
-  const newMovie = movieModel.addMovie({ title, genre, desireScale });
-  res.json({ success: true, movie: newMovie });
 };
 
 // Mark movie as watched
-exports.markAsWatched = (req, res) => {
-  const movieId = req.params.id;
-  const watchedMovie = movieModel.markAsWatched(movieId);
+exports.markAsWatched = async (req, res) => {
+  try {
+    const movieId = req.params.id;
+    const userId = getUserId(req);
+    const watchedMovie = await movieModel.markAsWatched(movieId, userId);
 
-  if (!watchedMovie) {
-    return res.status(404).json({ success: false, error: 'Movie not found' });
+    if (!watchedMovie) {
+      return res.status(404).json({ success: false, error: 'Movie not found' });
+    }
+
+    res.json({ success: true, watchedMovie });
+  } catch (error) {
+    console.error('Error marking movie as watched:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to mark movie as watched',
+    });
   }
-
-  res.json({ success: true, watchedMovie });
 };
 
 // Remove movie
-exports.removeMovie = (req, res) => {
-  const movieId = req.params.id;
-  const success = movieModel.removeMovie(movieId);
+exports.removeMovie = async (req, res) => {
+  try {
+    const movieId = req.params.id;
+    const userId = getUserId(req);
+    const success = await movieModel.removeMovie(movieId, userId);
 
-  if (!success) {
-    return res.status(404).json({ success: false, error: 'Movie not found' });
+    if (!success) {
+      return res.status(404).json({ success: false, error: 'Movie not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error removing movie:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to remove movie',
+    });
   }
-
-  res.json({ success: true });
 };
 
 // Update movie review
-exports.updateReview = (req, res) => {
-  const movieId = req.params.id;
-  const { review, rating } = req.body;
+exports.updateReview = async (req, res) => {
+  try {
+    const movieId = req.params.id;
+    const { review, rating } = req.body;
+    const userId = getUserId(req);
 
-  const success = movieModel.updateMovieReview(movieId, review, rating);
+    const success = await movieModel.updateMovieReview(
+      movieId,
+      review,
+      rating,
+      userId
+    );
 
-  if (!success) {
-    return res.status(404).json({ success: false, error: 'Movie not found' });
+    if (!success) {
+      return res.status(404).json({ success: false, error: 'Movie not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating movie review:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update movie review',
+    });
   }
-
-  res.json({ success: true });
 };
