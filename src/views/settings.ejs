@@ -25,7 +25,37 @@
         </div>
       </nav>
     </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - Movie Watchlist</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <div class="container">
+          <a href="/" class="logo">Movie Watchlist</a>
+          <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/history">History</a></li>
+            <li><a href="/settings" class="active">Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
 
+    <main class="container">
+      <section class="hero">
+        <h1>Settings</h1>
+        <p>Manage your profile and preferences</p>
+      </section>
     <main class="container">
       <section class="hero">
         <h1>Settings</h1>
@@ -35,7 +65,33 @@
       <div class="settings-container">
         <section class="profile-section">
           <h2>Profile Settings</h2>
+      <div class="settings-container">
+        <section class="profile-section">
+          <h2>Profile Settings</h2>
 
+          <div class="profile-picture">
+            <h3>Profile Picture</h3>
+            <div class="avatar-container">
+              <img
+                id="profileAvatar"
+                src="/images/default-avatar.svg"
+                alt="Profile Picture"
+                class="avatar"
+                onerror="this.src='/images/default-avatar.svg'"
+              />
+              <div class="avatar-upload">
+                <input
+                  type="file"
+                  id="avatarInput"
+                  accept="image/*"
+                  style="display: none"
+                />
+                <button id="uploadAvatar" class="btn-secondary">
+                  Change Picture
+                </button>
+              </div>
+            </div>
+          </div>
           <div class="profile-picture">
             <h3>Profile Picture</h3>
             <div class="avatar-container">
@@ -70,7 +126,26 @@
                 required
               />
             </div>
+          <form id="profileForm" class="settings-form">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                value="<%= user ? user.username : '' %>"
+                required
+              />
+            </div>
 
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                value="<%= user ? user.email : '' %>"
+                required
+              />
+            </div>
             <div class="form-group">
               <label for="email">Email</label>
               <input
@@ -84,7 +159,17 @@
             <button type="submit" class="btn-primary">Update Profile</button>
           </form>
         </section>
+            <button type="submit" class="btn-primary">Update Profile</button>
+          </form>
+        </section>
 
+        <section class="password-section">
+          <h2>Change Password</h2>
+          <form id="passwordForm" class="settings-form">
+            <div class="form-group">
+              <label for="currentPassword">Current Password</label>
+              <input type="password" id="currentPassword" required />
+            </div>
         <section class="password-section">
           <h2>Change Password</h2>
           <form id="passwordForm" class="settings-form">
@@ -97,7 +182,15 @@
               <label for="newPassword">New Password</label>
               <input type="password" id="newPassword" required />
             </div>
+            <div class="form-group">
+              <label for="newPassword">New Password</label>
+              <input type="password" id="newPassword" required />
+            </div>
 
+            <div class="form-group">
+              <label for="confirmPassword">Confirm New Password</label>
+              <input type="password" id="confirmPassword" required />
+            </div>
             <div class="form-group">
               <label for="confirmPassword">Confirm New Password</label>
               <input type="password" id="confirmPassword" required />
@@ -106,7 +199,30 @@
             <button type="submit" class="btn-primary">Change Password</button>
           </form>
         </section>
+            <button type="submit" class="btn-primary">Change Password</button>
+          </form>
+        </section>
 
+        <section class="theme-section">
+          <h2>Appearance</h2>
+          <div class="theme-selector">
+            <h3>Theme</h3>
+            <div class="theme-options">
+              <label class="theme-option">
+                <input type="radio" name="theme" value="light" checked />
+                <span class="theme-preview light">
+                  <span class="theme-name">Light</span>
+                </span>
+              </label>
+              <label class="theme-option">
+                <input type="radio" name="theme" value="dark" />
+                <span class="theme-preview dark">
+                  <span class="theme-name">Dark</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </section>
         <section class="theme-section">
           <h2>Appearance</h2>
           <div class="theme-selector">
@@ -184,7 +300,14 @@
         <p>&copy; 2025 Movie Watchlist App. All rights reserved.</p>
       </div>
     </footer>
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 Movie Watchlist App. All rights reserved.</p>
+      </div>
+    </footer>
 
+    <script src="/js/main.js"></script>
+  </body>
     <script src="/js/main.js"></script>
   </body>
 </html>

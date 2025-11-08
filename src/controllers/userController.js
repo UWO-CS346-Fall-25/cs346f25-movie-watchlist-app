@@ -77,6 +77,7 @@ exports.postRegister = async (req, res, next) => {
  * GET /users/login
  * Display login form
  */
+// Placeholder for login page
 exports.getLogin = (req, res) => {
   res.render('login', {
     title: 'Login',
@@ -90,6 +91,8 @@ exports.getLogin = (req, res) => {
  * POST /users/login
  * Process login form
  */
+// Placeholder for login processing
+/* This function now simulates a login */
 exports.postLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;

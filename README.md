@@ -8,8 +8,8 @@ A web application that allows users to track movies they want to watch and have 
 
 This deliverable integrates a Supabase PostgreSQL database. The primary CRUD (Create/Read) slice implemented is **User Authentication**.
 
-***Create:** Users can register via the `/register` page. This form posts to the `userController`, which uses `supabase.auth.signUp()` to `INSERT` a new user into the Supabase `auth.users` table.
-***Read:** Users can log in via the `/login` page. This form posts to the `userController`, which uses `supabase.auth.signInWithPassword()` to query (or `SELECT`) the `auth.users` table to authenticate the user and create a session.
+**\*Create:** Users can register via the `/register` page. This form posts to the `userController`, which uses `supabase.auth.signUp()` to `INSERT` a new user into the Supabase `auth.users` table.
+**\*Read:** Users can log in via the `/login` page. This form posts to the `userController`, which uses `supabase.auth.signInWithPassword()` to query (or `SELECT`) the `auth.users` table to authenticate the user and create a session.
 
 We are currently sharing a database with our learn_french application from Mobile App Development.
 
@@ -37,6 +37,8 @@ We have several hover over effects throughout the app and all pages are responsi
   - Desire-to-watch rating (1-5 stars)
   - Options to mark as watched or remove from list
 - Empty state display when no movies are added
+
+![alt text](homepage.png)
 
 ![alt text](homepage.png)
 
@@ -73,6 +75,8 @@ We have several hover over effects throughout the app and all pages are responsi
 - Account actions:
   - Clear watchlist data
   - Delete account options
+
+![alt text](settingspage.png)
 
 ![alt text](settingspage.png)
 
