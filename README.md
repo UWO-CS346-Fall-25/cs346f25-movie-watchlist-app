@@ -4,6 +4,19 @@ A web application that allows users to track movies they want to watch and have 
 
 ## Pages and Features
 
+### feature/week10 improvements
+
+This deliverable integrates a Supabase PostgreSQL database. The primary CRUD (Create/Read) slice implemented is **User Authentication**.
+
+***Create:** Users can register via the `/register` page. This form posts to the `userController`, which uses `supabase.auth.signUp()` to `INSERT` a new user into the Supabase `auth.users` table.
+***Read:** Users can log in via the `/login` page. This form posts to the `userController`, which uses `supabase.auth.signInWithPassword()` to query (or `SELECT`) the `auth.users` table to authenticate the user and create a session.
+
+We are currently sharing a database with our learn_french application from Mobile App Development.
+
+## (Preview) Row-Level Security (RLS)
+
+Once auth is fully implemented, we would secure the `movies` table by enabling Row-Level Security (RLS). We would add a `user_id` column (a foreign key to `auth.users.id`) to the `movies` table. Then, we would create an RLS policy that states a user can only `SELECT`, `INSERT`, `UPDATE`, or `DELETE` movies where the `movies.user_id` column matches their own `auth.uid()`. This would ensure that users can only see and manage their own movie watchlist.
+
 ### feature/week9 improvements
 
 Some of the requirements were hit in the previous deliverable. In addition to this, we implemented the login and registration form page. We changed the font, and made filter inputs hidden but expandable.
