@@ -11,6 +11,8 @@ This deliverable integrates a Supabase PostgreSQL database. The primary CRUD (Cr
 **\*Create:** Users can register via the `/register` page. This form posts to the `userController`, which uses `supabase.auth.signUp()` to `INSERT` a new user into the Supabase `auth.users` table.
 **\*Read:** Users can log in via the `/login` page. This form posts to the `userController`, which uses `supabase.auth.signInWithPassword()` to query (or `SELECT`) the `auth.users` table to authenticate the user and create a session.
 
+The screenshots for the table schemas are in the docs/ folder.
+
 We are currently sharing a database with our learn_french application from Mobile App Development.
 
 ## (Preview) Row-Level Security (RLS)
