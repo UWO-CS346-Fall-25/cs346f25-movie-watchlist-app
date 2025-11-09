@@ -4,6 +4,21 @@ A web application that allows users to track movies they want to watch and have 
 
 ## Pages and Features
 
+### feature/week10 improvements
+
+This deliverable integrates a Supabase PostgreSQL database. The primary CRUD (Create/Read) slice implemented is **User Authentication**.
+
+**\*Create:** Users can register via the `/register` page. This form posts to the `userController`, which uses `supabase.auth.signUp()` to `INSERT` a new user into the Supabase `auth.users` table.
+**\*Read:** Users can log in via the `/login` page. This form posts to the `userController`, which uses `supabase.auth.signInWithPassword()` to query (or `SELECT`) the `auth.users` table to authenticate the user and create a session.
+
+The screenshots for the table schemas are in the docs/ folder.
+
+We are currently sharing a database with our learn_french application from Mobile App Development.
+
+## (Preview) Row-Level Security (RLS)
+
+Once auth is fully implemented, we would secure the `movies` table by enabling Row-Level Security (RLS). We would add a `user_id` column (a foreign key to `auth.users.id`) to the `movies` table. Then, we would create an RLS policy that states a user can only `SELECT`, `INSERT`, `UPDATE`, or `DELETE` movies where the `movies.user_id` column matches their own `auth.uid()`. This would ensure that users can only see and manage their own movie watchlist.
+
 ### feature/week9 improvements
 
 Some of the requirements were hit in the previous deliverable. In addition to this, we implemented the login and registration form page. We changed the font, and made filter inputs hidden but expandable.
@@ -27,6 +42,8 @@ We have several hover over effects throughout the app and all pages are responsi
 
 ![alt text](homepage.png)
 
+![alt text](homepage.png)
+
 ### History Page
 
 **Purpose:** Shows all movies that have been watched, along with user ratings and reviews.
@@ -42,7 +59,7 @@ We have several hover over effects throughout the app and all pages are responsi
   - User's review
   - Option to edit review and rating
 - Statistics showing total movies watched
-![alt text](historypage.png)
+  ![alt text](historypage.png)
 
 ### Settings Page
 
@@ -63,12 +80,14 @@ We have several hover over effects throughout the app and all pages are responsi
 
 ![alt text](settingspage.png)
 
+![alt text](settingspage.png)
+
 ## Technology Stack
 
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend:** Node.js with Express
 - **Templating:** EJS for dynamic page rendering
-- **Database:** PostgreSQL for data storage
+- **Database:** Supabase (PostgreSQL) with Authentication
 - **Security:** Helmet, CSRF protection, secure sessions
 
 ## Project Structure
@@ -77,14 +96,26 @@ We have several hover over effects throughout the app and all pages are responsi
 ├── src/
 │   ├── server.js           # Server entry point
 │   ├── app.js              # Express app configuration
+│   ├── config/             # Configuration files
+│   │   └── supabase.js     # Supabase client setup
+│   ├── services/           # Business logic services
+│   │   └── authService.js  # Supabase Auth integration
 │   ├── routes/             # Route definitions
-│   │   └── index.js        # Main route handlers
+│   │   ├── index.js        # Main route handlers
+│   │   ├── api.js          # API routes
+│   │   └── users.js        # Authentication routes
 │   ├── controllers/        # Request handlers
-│   │   └── homeController.js # Home page controller
+│   │   ├── homeController.js    # Home page controller
+│   │   ├── movieController.js   # Movie operations
+│   │   └── userController.js    # User authentication
+│   ├── models/             # Data models
+│   │   └── movieModel.js   # Movie database operations
 │   ├── views/              # EJS templates
 │   │   ├── index.ejs       # Home page (watchlist)
 │   │   ├── history.ejs     # Movie history page
 │   │   ├── settings.ejs    # User settings page
+│   │   ├── login.ejs       # Login page
+│   │   ├── register.ejs    # Registration page
 │   │   ├── error.ejs       # Error page
 │   │   └── layout.ejs      # Main layout template
 │   └── public/             # Static files
@@ -96,12 +127,9 @@ We have several hover over effects throughout the app and all pages are responsi
 │       │   └── settings.js # Settings page functionality
 │       └── images/         # Image assets
 │           └── default-avatar.png # Default user avatar
-├── db/
-│   ├── migrations/         # Database migrations
-│   ├── seeds/              # Database seeds
-│   ├── migrate.js          # Migration runner
-│   ├── seed.js             # Seed runner
-│   └── reset.js            # Database reset script
+├── supabase-setup.sql      # Database setup script
+├── test-supabase.js        # Test database connection
+├── test-auth.js            # Test authentication
 ├── .env.example            # Environment variables template
 ├── .eslintrc.json          # ESLint configuration
 ├── .prettierrc.json        # Prettier configuration
@@ -116,7 +144,8 @@ We have several hover over effects throughout the app and all pages are responsi
 - 🔍 **Powerful Filtering** - Find movies by name, genre, rating, or date
 - 🌓 **Theme Switching** - Toggle between light and dark mode
 - 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
-- 🔒 **User Authentication** - Secure login and registration
+- 🔒 **User Authentication** - Secure login and registration with Supabase Auth
+- ☁️ **Cloud Database** - Real-time data storage with Supabase
 
 ## Getting Started
 
@@ -133,24 +162,21 @@ We have several hover over effects throughout the app and all pages are responsi
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Set up Supabase database**
+
+   Copy the contents of `supabase-setup.sql` to your Supabase SQL Editor and run it to create the movies table and sample data.
+
+4. **Set up environment variables**
 
    ```bash
    cp .env.example .env
-   # Edit .env with your database credentials
+   # Edit .env with your Supabase credentials (URL and API key are already configured)
    ```
 
-4. **Set up PostgreSQL database**
+5. **Test the connection**
 
    ```bash
-   # Create database
-   createdb movie_watchlist
-   ```
-
-5. **Run migrations**
-
-   ```bash
-   npm run migrate
+   node test-supabase.js
    ```
 
 6. **Start the application**
@@ -160,7 +186,8 @@ We have several hover over effects throughout the app and all pages are responsi
    ```
 
 7. **Open your browser**
-   ```
+
+   ```bash
    http://localhost:3000
    ```
 
@@ -168,7 +195,35 @@ We have several hover over effects throughout the app and all pages are responsi
 
 - `npm start` - Start production server
 - `npm run dev` - Start development server with auto-reload
-- `npm run migrate` - Run database migrations
-- `npm run seed` - Seed database with sample data
+- `node test-supabase.js` - Test Supabase database connection
+- `node test-auth.js` - Test Supabase authentication setup
 - `npm run lint` - Check code for linting errors
 - `npm run format` - Format code with Prettier
+
+## Database Schema
+
+The app uses a single `movies` table for both watchlist and watched movies:
+
+```sql
+CREATE TABLE movies (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  genre VARCHAR(50) NOT NULL,
+  desire_scale INTEGER CHECK (desire_scale >= 1 AND desire_scale <= 5),
+  date_added DATE DEFAULT CURRENT_DATE,
+  watched BOOLEAN DEFAULT FALSE,
+  watched_date DATE,
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+  review TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Design Benefits:**
+
+- Simple single-table approach (no complex JOINs)
+- `watched = false` for watchlist movies
+- `watched = true` for watched movies
+- Works with existing Supabase Auth users table

@@ -1,25 +1,24 @@
 /**
  * User Controller
  *
- * Handles user-related operations:
+ * Handles user-related operations with Supabase Auth:
  * - Registration
  * - Login/Logout
  * - Profile management
  * - Authentication
  */
 
-// Import models
-// const User = require('../models/User');
+const authService = require('../services/authService');
 
 /**
  * GET /users/register
  * Display registration form
  */
 exports.getRegister = (req, res) => {
-  // We'll create this 'register.ejs' file in the next step
   res.render('register', {
     title: 'Register',
-    // We'll add csrfToken here later when we add the POST route
+    error: null,
+    csrfToken: req.csrfToken ? req.csrfToken() : '',
   });
 };
 
@@ -29,11 +28,47 @@ exports.getRegister = (req, res) => {
  */
 exports.postRegister = async (req, res, next) => {
   try {
-    console.log('Registration attempt:', req.body);
+    const { username, email, password } = req.body;
 
-    // As requested, redirect to login after registering
-    res.redirect('/users/login');
+    console.log('Registration attempt for:', email);
+
+    // Validate input
+    if (!username || !email || !password) {
+      return res.render('register', {
+        title: 'Register',
+        error: 'All fields are required',
+        csrfToken: req.csrfToken ? req.csrfToken() : '',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.render('register', {
+        title: 'Register',
+        error: 'Password must be at least 6 characters long',
+        csrfToken: req.csrfToken ? req.csrfToken() : '',
+      });
+    }
+
+    // Register with Supabase Auth
+    const result = await authService.register(email, password, username);
+
+    if (!result.success) {
+      return res.render('register', {
+        title: 'Register',
+        error: result.error,
+        csrfToken: req.csrfToken ? req.csrfToken() : '',
+      });
+    }
+
+    // Success - redirect to login with success message
+    res.render('login', {
+      title: 'Login',
+      success: result.message,
+      error: null,
+      csrfToken: req.csrfToken ? req.csrfToken() : '',
+    });
   } catch (error) {
+    console.error('Registration error:', error);
     next(error);
   }
 };
@@ -42,10 +77,12 @@ exports.postRegister = async (req, res, next) => {
  * GET /users/login
  * Display login form
  */
-// Placeholder for login page
 exports.getLogin = (req, res) => {
   res.render('login', {
     title: 'Login',
+    error: null,
+    success: null,
+    csrfToken: req.csrfToken ? req.csrfToken() : '',
   });
 };
 
@@ -53,26 +90,59 @@ exports.getLogin = (req, res) => {
  * POST /users/login
  * Process login form
  */
-// Placeholder for login processing
-/* This function now simulates a login */
 exports.postLogin = async (req, res, next) => {
   try {
-    // In a real app, you'd find the user and check their password.
-    // For this deliverable, we can just "log them in"
-    // by setting the session.
+    const { email, password } = req.body;
+
+    console.log('Login attempt for:', email);
+
+    // Validate input
+    if (!email || !password) {
+      return res.render('login', {
+        title: 'Login',
+        error: 'Email and password are required',
+        success: null,
+        csrfToken: req.csrfToken ? req.csrfToken() : '',
+      });
+    }
+
+    // Login with Supabase Auth
+    const result = await authService.login(email, password);
+
+    if (!result.success) {
+      return res.render('login', {
+        title: 'Login',
+        error: result.error,
+        success: null,
+        csrfToken: req.csrfToken ? req.csrfToken() : '',
+      });
+    }
+
+    // Store user session
     req.session.user = {
-      id: 1, // Placeholder user ID
-      username: req.body.email, // Just use their email as their name for now
+      id: result.user.id,
+      email: result.user.email,
+      username:
+        result.user.user_metadata?.username || result.user.email.split('@')[0],
     };
 
-    // Save the session and redirect to the home page
+    req.session.supabaseSession = {
+      access_token: result.session.access_token,
+      refresh_token: result.session.refresh_token,
+      expires_at: result.session.expires_at,
+    };
+
+    // Save session and redirect
     req.session.save((err) => {
       if (err) {
+        console.error('Session save error:', err);
         return next(err);
       }
+      console.log('Login successful, redirecting to home');
       res.redirect('/');
     });
   } catch (error) {
+    console.error('Login error:', error);
     next(error);
   }
 };
@@ -81,13 +151,27 @@ exports.postLogin = async (req, res, next) => {
  * POST /users/logout
  * Logout user
  */
-exports.postLogout = (req, res, next) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Error destroying session:', err);
-      return next(err);
+exports.postLogout = async (req, res, next) => {
+  try {
+    // Logout from Supabase Auth
+    const result = await authService.logout();
+
+    if (!result.success) {
+      console.error('Supabase logout error:', result.error);
+      // Continue with session destruction even if Supabase logout fails
     }
-    // Explicitly redirect to the login page, as you suggested!
-    res.redirect('/users/login');
-  });
+
+    // Destroy local session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error destroying session:', err);
+        return next(err);
+      }
+      console.log('Logout successful, redirecting to login');
+      res.redirect('/users/login');
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    next(error);
+  }
 };

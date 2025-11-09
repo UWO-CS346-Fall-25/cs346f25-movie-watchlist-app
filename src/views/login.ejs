@@ -15,6 +15,18 @@
             <p>Please log in to continue</p>
           </div>
 
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error" style="background-color: #fee; border: 1px solid #fcc; color: #c33; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+              <%= error %>
+            </div>
+          <% } %>
+
+          <% if (typeof success !== 'undefined' && success) { %>
+            <div class="alert alert-success" style="background-color: #efe; border: 1px solid #cfc; color: #363; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+              <%= success %>
+            </div>
+          <% } %>
+
           <form
             id="loginForm"
             class="settings-form"
@@ -22,7 +34,7 @@
             action="/users/login"
           >
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-          
+
             <div class="form-group">
               <label for="email">Email</label>
               <input

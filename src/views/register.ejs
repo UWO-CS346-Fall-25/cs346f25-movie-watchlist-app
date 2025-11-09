@@ -15,6 +15,12 @@
             <p>Join to start building your watchlist</p>
           </div>
 
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error" style="background-color: #fee; border: 1px solid #fcc; color: #c33; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+              <%= error %>
+            </div>
+          <% } %>
+
           <form
             id="registerForm"
             class="settings-form"
