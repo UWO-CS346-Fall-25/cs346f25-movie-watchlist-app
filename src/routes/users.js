@@ -42,4 +42,10 @@ router.post('/register', userController.postRegister);
 // POST /users/logout - Logout user
 router.post('/logout', userController.postLogout);
 
+// POST /users/update-email - Update user email
+router.post('/update-email', userController.postUpdateEmail);
+
+// POST /users/update-password - Update user password
+router.post('/update-password', userController.postUpdatePassword);
+
 module.exports = router;

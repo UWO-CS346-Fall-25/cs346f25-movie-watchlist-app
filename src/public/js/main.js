@@ -186,6 +186,9 @@ function showNotification(message, type = 'info') {
   }, 3000);
 }
 
+// Make showNotification globally available
+window.showNotification = showNotification;
+
 // Movie Watchlist App JavaScript - Data comes from server via EJS
 // Retrieve the data that was passed from the controller to the EJS template
 let watchlistMovies = [];
@@ -286,11 +289,27 @@ function renderMovies(movies = []) {
 async function handleAddMovie(e) {
   e.preventDefault();
 
-  const title = document.getElementById('movieTitle').value;
-  const genre = document.getElementById('movieGenre').value;
-  const desireScale = document.getElementById('desireScale').value;
+  const titleElement = document.getElementById('movieTitle');
+  const genreElement = document.getElementById('movieGenre');
+  const desireScaleElement = document.getElementById('desireScale');
 
-  if (!title || !genre || !desireScale) return;
+  console.log('Form elements found:', {
+    titleElement,
+    genreElement,
+    desireScaleElement,
+  });
+
+  const title = titleElement?.value;
+  const genre = genreElement?.value;
+  const desireScale = desireScaleElement?.value;
+
+  console.log('Form values:', { title, genre, desireScale });
+
+  if (!title || !genre || !desireScale) {
+    console.error('Missing form values');
+    showNotification('Please fill in all fields', 'error');
+    return;
+  }
 
   try {
     const response = await fetch('/api/movies', {
@@ -303,12 +322,15 @@ async function handleAddMovie(e) {
 
     const result = await response.json();
 
+    console.log('Add movie response:', result);
+
     if (result.success) {
       movieForm.reset();
       loadMovies(); // Refresh the movie list
       showNotification('Movie added successfully!', 'success');
     } else {
-      showNotification('Failed to add movie', 'error');
+      console.error('Failed to add movie:', result.error);
+      showNotification(result.error || 'Failed to add movie', 'error');
     }
   } catch (error) {
     console.error('Error adding movie:', error);
@@ -318,7 +340,119 @@ async function handleAddMovie(e) {
 
 async function handleMarkAsWatched(e) {
   const movieId = e.target.getAttribute('data-movie-id');
+  const movieCard = e.target.closest('.movie-card');
+  const movieTitle = movieCard.querySelector('.movie-title').textContent;
 
+  // Show rating/review modal
+  showWatchedModal(movieId, movieTitle);
+}
+
+// Show modal for rating and reviewing when marking as watched
+function showWatchedModal(movieId, movieTitle) {
+  // Create modal HTML
+  const modalHTML = `
+    <div id="watchedModal" class="modal" style="display: block;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Mark "${movieTitle}" as Watched</h3>
+          <span class="close" onclick="closeWatchedModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="watchedForm">
+            <div class="form-group">
+              <label for="movieRating">Rating (1-5 stars):</label>
+              <div class="star-rating">
+                <input type="radio" id="star5" name="rating" value="5" />
+                <label for="star5" title="5 stars">★</label>
+                <input type="radio" id="star4" name="rating" value="4" />
+                <label for="star4" title="4 stars">★</label>
+                <input type="radio" id="star3" name="rating" value="3" />
+                <label for="star3" title="3 stars">★</label>
+                <input type="radio" id="star2" name="rating" value="2" />
+                <label for="star2" title="2 stars">★</label>
+                <input type="radio" id="star1" name="rating" value="1" />
+                <label for="star1" title="1 star">★</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="movieReview">Your Review (optional):</label>
+              <textarea
+                id="movieReview"
+                rows="4"
+                placeholder="What did you think of this movie?"
+              ></textarea>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" onclick="closeWatchedModal()">Cancel</button>
+              <button type="button" class="btn-primary" onclick="submitWatchedForm('${movieId}')">Mark as Watched</button>
+              <button type="button" class="btn-outline" onclick="submitWatchedFormQuick('${movieId}')">Quick Mark (No Rating)</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Remove existing modal if any
+  const existingModal = document.getElementById('watchedModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // Add modal to body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// Close watched modal
+function closeWatchedModal() {
+  const modal = document.getElementById('watchedModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// Submit watched form with rating and review
+async function submitWatchedForm(movieId) {
+  const rating = document.querySelector('input[name="rating"]:checked')?.value;
+  const review = document.getElementById('movieReview')?.value.trim();
+
+  if (!rating) {
+    showNotification('Please select a rating', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/movies/${movieId}/watched`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        rating: parseInt(rating),
+        review: review || null,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      closeWatchedModal();
+      loadMovies(); // Refresh the movie list
+      showNotification(
+        `Movie marked as watched with ${rating} star${rating > 1 ? 's' : ''}!`,
+        'success'
+      );
+    } else {
+      showNotification('Failed to mark movie as watched', 'error');
+    }
+  } catch (error) {
+    console.error('Error marking movie as watched:', error);
+    showNotification('Error updating movie', 'error');
+  }
+}
+
+// Submit watched form without rating (quick mark)
+async function submitWatchedFormQuick(movieId) {
   try {
     const response = await fetch(`/api/movies/${movieId}/watched`, {
       method: 'PUT',
@@ -327,6 +461,7 @@ async function handleMarkAsWatched(e) {
     const result = await response.json();
 
     if (result.success) {
+      closeWatchedModal();
       loadMovies(); // Refresh the movie list
       showNotification('Movie marked as watched!', 'success');
     } else {
@@ -678,6 +813,8 @@ function initializeSettings() {
   const themeInputs = document.querySelectorAll('input[name="theme"]');
   const uploadAvatar = document.getElementById('uploadAvatar');
   const avatarInput = document.getElementById('avatarInput');
+  const emailForm = document.getElementById('emailForm');
+  const passwordForm = document.getElementById('passwordForm');
 
   if (themeInputs) {
     themeInputs.forEach((input) => {
@@ -688,6 +825,14 @@ function initializeSettings() {
   if (uploadAvatar && avatarInput) {
     uploadAvatar.addEventListener('click', () => avatarInput.click());
     avatarInput.addEventListener('change', handleAvatarUpload);
+  }
+
+  if (emailForm) {
+    emailForm.addEventListener('submit', handleEmailUpdate);
+  }
+
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', handlePasswordUpdate);
   }
 }
 
@@ -734,6 +879,100 @@ function handleAvatarUpload(e) {
     showNotification('Error reading file', 'error');
   };
   reader.readAsDataURL(file);
+}
+
+// Handle email update
+async function handleEmailUpdate(e) {
+  e.preventDefault();
+
+  const emailInput = document.getElementById('email');
+  const newEmail = emailInput.value.trim();
+
+  if (!newEmail) {
+    showNotification('Email is required', 'error');
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(newEmail)) {
+    showNotification('Please enter a valid email address', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch('/users/update-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: newEmail }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showNotification(result.message, 'success');
+    } else {
+      showNotification(result.error, 'error');
+    }
+  } catch (error) {
+    console.error('Error updating email:', error);
+    showNotification('Error updating email', 'error');
+  }
+}
+
+// Handle password update
+async function handlePasswordUpdate(e) {
+  e.preventDefault();
+
+  const newPasswordInput = document.getElementById('newPassword');
+  const confirmPasswordInput = document.getElementById('confirmPassword');
+
+  const newPassword = newPasswordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+
+  if (!newPassword || !confirmPassword) {
+    showNotification('Both password fields are required', 'error');
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    showNotification('Passwords do not match', 'error');
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    showNotification('Password must be at least 6 characters long', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch('/users/update-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        password: newPassword,
+        confirmPassword: confirmPassword,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Clear the form
+      newPasswordInput.value = '';
+      confirmPasswordInput.value = '';
+      showNotification(result.message, 'success');
+    } else {
+      showNotification(result.error, 'error');
+    }
+  } catch (error) {
+    console.error('Error updating password:', error);
+    showNotification('Error updating password', 'error');
+  }
 }
 
 // Theme initialization

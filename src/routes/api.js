@@ -21,8 +21,11 @@ router.post('/movies', movieController.addMovie);
 // Mark movie as watched
 router.put('/movies/:id/watched', movieController.markAsWatched);
 
-// Remove movie
+// Remove movie (from watchlist)
 router.delete('/movies/:id', movieController.removeMovie);
+
+// Remove watched movie
+router.delete('/watched/:id', movieController.removeWatchedMovie);
 
 // Update movie review
 router.put('/watched/:id/review', movieController.updateReview);
