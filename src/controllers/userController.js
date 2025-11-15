@@ -130,6 +130,9 @@ exports.postLogin = async (req, res, next) => {
       expires_at: result.session.expires_at,
     };
 
+    // show welcome message on login
+    req.session.showWelcomeMessage = true;
+
     // Save session and redirect
     req.session.save((err) => {
       if (err) {
