@@ -632,6 +632,7 @@ main {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
@@ -640,7 +641,9 @@ main {
   padding: 0;
   border-radius: var(--radius-lg);
   max-width: 500px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-light);
+  animation: modalSlideIn 0.3s ease-out;
 }
 
 .modal-header {
@@ -649,6 +652,17 @@ main {
   align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid var(--border);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05),
+    rgba(118, 75, 162, 0.05)
+  );
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .modal-body {
@@ -659,12 +673,157 @@ main {
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--text-light);
+  transition: color 0.3s ease;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close:hover {
+  color: var(--danger);
+  background: rgba(245, 101, 101, 0.1);
 }
 
 .modal-actions {
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
+  justify-content: flex-end;
+}
+
+/* Star Rating System */
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin: 0.5rem 0;
+}
+
+.star-rating input[type='radio'] {
+  display: none;
+}
+
+.star-rating label {
+  font-size: 2rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.25rem;
+  border-radius: 50%;
+}
+
+.star-rating label:hover,
+.star-rating label:hover ~ label,
+.star-rating input[type='radio']:checked ~ label {
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  transform: scale(1.1);
+}
+
+.star-rating label:hover {
+  color: #f59e0b;
+}
+
+/* Form Group for Modal */
+.modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal .form-group label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.modal .form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.modal .form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Button variants for modal */
+.btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 2px solid var(--border);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 0.875rem;
+}
+
+.btn-outline:hover {
+  background: var(--border-light);
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+/* Confirmation modal specific styling */
+#confirmationModal .modal-content {
+  max-width: 400px;
+}
+
+#confirmationModal .modal-body {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+#confirmationModal .modal-body p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+#confirmationModal .modal-actions {
+  padding: 1rem 1.5rem;
+  background: var(--border-light);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+#confirmationModal .modal-actions button {
+  min-width: 80px;
+}
+
+/* Modal Animation */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Action Controls Section */

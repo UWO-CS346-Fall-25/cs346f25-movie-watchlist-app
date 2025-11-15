@@ -11,21 +11,14 @@ class AuthService {
    * Register a new user
    * @param {string} email - User email
    * @param {string} password - User password
-   * @param {string} username - User username
    * @returns {Promise<Object>} Registration result
    */
-  async register(email, password, username) {
+  async register(email, password) {
     try {
       // Register user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
-        options: {
-          data: {
-            username: username,
-            display_name: username,
-          },
-        },
       });
 
       if (error) {
@@ -144,7 +137,7 @@ class AuthService {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, email, username, created_at, updated_at')
+        .select('id, email, created_at, updated_at')
         .eq('id', userId)
         .single();
 
@@ -162,6 +155,65 @@ class AuthService {
         success: false,
         error: error.message,
         user: null,
+      };
+    }
+  }
+
+  /**
+   * Update user email
+   * @param {string} newEmail - New email address
+   * @returns {Promise<Object>} Update result
+   */
+  async updateEmail(newEmail) {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        email: newEmail,
+      });
+
+      if (error) {
+        throw new Error(`Email update failed: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        user: data.user,
+        message:
+          'Email updated successfully! Please check your new email to confirm the change.',
+      };
+    } catch (error) {
+      console.error('Email update error:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Update user password
+   * @param {string} newPassword - New password
+   * @returns {Promise<Object>} Update result
+   */
+  async updatePassword(newPassword) {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        throw new Error(`Password update failed: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        user: data.user,
+        message: 'Password updated successfully!',
+      };
+    } catch (error) {
+      console.error('Password update error:', error);
+      return {
+        success: false,
+        error: error.message,
       };
     }
   }

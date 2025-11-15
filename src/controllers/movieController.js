@@ -57,10 +57,25 @@ exports.addMovie = async (req, res) => {
     const { title, genre, desireScale } = req.body;
     const userId = getUserId(req);
 
+    console.log('Add movie request:', {
+      title,
+      genre,
+      desireScale,
+      userId,
+      sessionUser: req.session?.user,
+    });
+
     if (!title || !genre || !desireScale) {
       return res
         .status(400)
         .json({ success: false, error: 'Missing required fields' });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
+      });
     }
 
     const newMovie = await movieModel.addMovie(
@@ -75,6 +90,7 @@ exports.addMovie = async (req, res) => {
       });
     }
 
+    console.log('Movie added successfully:', newMovie);
     res.json({ success: true, movie: newMovie });
   } catch (error) {
     console.error('Error adding movie:', error);
@@ -90,10 +106,27 @@ exports.markAsWatched = async (req, res) => {
   try {
     const movieId = req.params.id;
     const userId = getUserId(req);
+    const { rating, review } = req.body;
+
     const watchedMovie = await movieModel.markAsWatched(movieId, userId);
 
     if (!watchedMovie) {
       return res.status(404).json({ success: false, error: 'Movie not found' });
+    }
+
+    // If rating or review was provided, update the movie
+    if (rating || review) {
+      const updateSuccess = await movieModel.updateMovieReview(
+        movieId,
+        review,
+        rating,
+        userId
+      );
+      if (!updateSuccess) {
+        console.warn(
+          'Failed to update review/rating, but movie was marked as watched'
+        );
+      }
     }
 
     res.json({ success: true, watchedMovie });
@@ -123,6 +156,38 @@ exports.removeMovie = async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to remove movie',
+    });
+  }
+};
+
+// Remove watched movie
+exports.removeWatchedMovie = async (req, res) => {
+  try {
+    const movieId = req.params.id;
+    const userId = getUserId(req);
+
+    console.log('Remove watched movie request:', { movieId, userId });
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
+      });
+    }
+
+    const success = await movieModel.removeMovie(movieId, userId);
+
+    if (!success) {
+      return res.status(404).json({ success: false, error: 'Movie not found' });
+    }
+
+    console.log('Watched movie removed successfully');
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error removing watched movie:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to remove watched movie',
     });
   }
 };

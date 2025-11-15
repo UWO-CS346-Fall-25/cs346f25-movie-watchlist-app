@@ -28,15 +28,15 @@ exports.getRegister = (req, res) => {
  */
 exports.postRegister = async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
 
     console.log('Registration attempt for:', email);
 
     // Validate input
-    if (!username || !email || !password) {
+    if (!email || !password) {
       return res.render('register', {
         title: 'Register',
-        error: 'All fields are required',
+        error: 'Email and password are required',
         csrfToken: req.csrfToken ? req.csrfToken() : '',
       });
     }
@@ -49,8 +49,8 @@ exports.postRegister = async (req, res, next) => {
       });
     }
 
-    // Register with Supabase Auth
-    const result = await authService.register(email, password, username);
+    // Register with Supabase Auth (no username)
+    const result = await authService.register(email, password);
 
     if (!result.success) {
       return res.render('register', {
@@ -122,8 +122,6 @@ exports.postLogin = async (req, res, next) => {
     req.session.user = {
       id: result.user.id,
       email: result.user.email,
-      username:
-        result.user.user_metadata?.username || result.user.email.split('@')[0],
     };
 
     req.session.supabaseSession = {
@@ -131,6 +129,9 @@ exports.postLogin = async (req, res, next) => {
       refresh_token: result.session.refresh_token,
       expires_at: result.session.expires_at,
     };
+
+    // show welcome message on login
+    req.session.showWelcomeMessage = true;
 
     // Save session and redirect
     req.session.save((err) => {
@@ -173,5 +174,97 @@ exports.postLogout = async (req, res, next) => {
   } catch (error) {
     console.error('Logout error:', error);
     next(error);
+  }
+};
+
+/**
+ * POST /users/update-email
+ * Update user email
+ */
+exports.postUpdateEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is required',
+      });
+    }
+
+    const result = await authService.updateEmail(email);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error,
+      });
+    }
+
+    // Update session with new email
+    req.session.user.email = email;
+    req.session.save();
+
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    console.error('Email update error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update email',
+    });
+  }
+};
+
+/**
+ * POST /users/update-password
+ * Update user password
+ */
+exports.postUpdatePassword = async (req, res) => {
+  try {
+    const { password, confirmPassword } = req.body;
+
+    if (!password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Both password fields are required',
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Passwords do not match',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters long',
+      });
+    }
+
+    const result = await authService.updatePassword(password);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    console.error('Password update error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update password',
+    });
   }
 };

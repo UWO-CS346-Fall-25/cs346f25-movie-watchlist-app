@@ -4,6 +4,10 @@ A web application that allows users to track movies they want to watch and have 
 
 ## Pages and Features
 
+### feature/week11 improvements
+
+So, we did it slightly backwards. We did user authorization last week, though we added a visual cue to the login this week. We focused on full user database integration. You can now insert movies into your watchlist and it will save. You can add your review, and mark it as watched. Then, you can go to your watch history and look at all of your reviews there. You can delete a review and filter them by different metrics. We also changed the notification pop up to go on the top left of the screen as it was hiding the page route links on the nav bar.
+
 ### feature/week10 improvements
 
 This deliverable integrates a Supabase PostgreSQL database. The primary CRUD (Create/Read) slice implemented is **User Authentication**.

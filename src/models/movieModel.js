@@ -241,7 +241,7 @@ exports.addMovie = async (movie, userId = null) => {
           title: movie.title,
           genre: movie.genre,
           desire_scale: parseInt(movie.desireScale),
-          date_added: new Date().toISOString().split('T')[0],
+          // date_added field is removed - let the DB use DEFAULT CURRENT_DATE
           watched: false,
         },
       ])
@@ -283,7 +283,7 @@ exports.markAsWatched = async (id, userId = null) => {
       .from('movies')
       .update({
         watched: true,
-        watched_date: new Date().toISOString().split('T')[0],
+        watched_date: new Date().toLocaleDateString('en-CA'), // <-- FIX 1: Save local date
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

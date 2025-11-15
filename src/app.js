@@ -43,12 +43,21 @@ app.use(
 // NEW: Initialize csurf middleware
 // This must come *after* session middleware
 const csrfProtection = csurf({ cookie: false });
-app.use(csrfProtection);
+
+// Apply CSRF protection to all routes except API routes
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    // Skip CSRF protection for API routes
+    return next();
+  }
+  csrfProtection(req, res, next);
+});
 
 // NEW: Make user and CSRF token available in all templates
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
-  res.locals.csrfToken = req.csrfToken(); // Pass CSRF token to all views
+  // Only add CSRF token if the function exists (i.e., not on API routes)
+  res.locals.csrfToken = req.csrfToken ? req.csrfToken() : '';
   next();
 });
 
@@ -88,7 +97,7 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   // Handle csurf errors
   if (err.code === 'EBADCSRFTOKEN') {
     res.status(403).render('error', {
