@@ -263,13 +263,19 @@ function renderMovies(movies = []) {
       <div class="movie-details">
         <div class="desire-scale">
           <span>Desire to watch:</span>
-          <div class="stars">${'★'.repeat(movie.desireScale)}${'☆'.repeat(5 - movie.desireScale)}</div>
+          <div class="stars">${'★'.repeat(movie.desireScale)}${'☆'.repeat(
+            5 - movie.desireScale
+          )}</div>
         </div>
         <div class="watch-date">Added: ${formatDate(movie.dateAdded)}</div>
       </div>
       <div class="movie-actions">
-        <button class="btn-primary mark-watched-btn" data-movie-id="${movie.id}">Mark Watched</button>
-        <button class="btn-danger remove-movie-btn" data-movie-id="${movie.id}">Remove</button>
+        <button class="btn-primary mark-watched-btn" data-movie-id="${
+          movie.id
+        }">Mark Watched</button>
+        <button class="btn-danger remove-movie-btn" data-movie-id="${
+          movie.id
+        }">Remove</button>
       </div>
     </div>
   `
@@ -638,11 +644,13 @@ function filterWatchedMovies() {
 
     let matchesDateRange = true;
     if (dateFromFilter) {
-      const fromDate = new Date(dateFromFilter);
+      // Treat YYYY-MM-DD as local, not UTC
+      const fromDate = new Date(dateFromFilter.replace(/-/g, '/'));
       matchesDateRange = matchesDateRange && watchDate >= fromDate;
     }
     if (dateToFilter) {
-      const toDate = new Date(dateToFilter);
+      // Treat YYYY-MM-DD as local, not UTC
+      const toDate = new Date(dateToFilter.replace(/-/g, '/'));
       matchesDateRange = matchesDateRange && watchDate <= toDate;
     }
 
@@ -1024,5 +1032,6 @@ function formatDate(dateString) {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    timeZone: 'UTC', // <-- Fixes "Added" date
   });
 }

@@ -114,15 +114,26 @@ function renderMovies() {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
+            timeZone: 'UTC', // This displays the date correctly
           })}
         </div>
-        ${movie.review ? `<div class="movie-review"><strong>Review:</strong> ${escapeHtml(movie.review)}</div>` : ''}
+        ${
+          movie.review
+            ? `<div class="movie-review"><strong>Review:</strong> ${escapeHtml(
+                movie.review
+              )}</div>`
+            : ''
+        }
       </div>
       <div class="movie-actions">
-        <button class="btn-secondary edit-review-btn" data-movie-id="${movie.id}">
+        <button class="btn-secondary edit-review-btn" data-movie-id="${
+          movie.id
+        }">
           Edit Review
         </button>
-        <button class="btn-danger remove-watched-btn" data-movie-id="${movie.id}">
+        <button class="btn-danger remove-watched-btn" data-movie-id="${
+          movie.id
+        }">
           Remove
         </button>
       </div>
@@ -146,15 +157,17 @@ function generateStars(rating) {
 
 // Update statistics
 function updateStats() {
-  totalWatchedSpanEl.textContent = `${historyFilteredMovies.length} movie${historyFilteredMovies.length !== 1 ? 's' : ''} watched`;
+  totalWatchedSpanEl.textContent = `${historyFilteredMovies.length} movie${
+    historyFilteredMovies.length !== 1 ? 's' : ''
+  } watched`;
 }
 
 // Apply filters to movie list
 function applyFilters() {
   const nameFilter = filterNameInputEl.value.toLowerCase().trim();
   const genreFilter = filterGenreSelectEl.value.toLowerCase();
-  const dateFromFilter = filterDateFromInputEl.value;
-  const dateToFilter = filterDateToInputEl.value;
+  const dateFromFilter = filterDateFromInputEl.value; // 'YYYY-MM-DD'
+  const dateToFilter = filterDateToInputEl.value; // 'YYYY-MM-DD'
 
   historyFilteredMovies = historyWatchedMovies.filter((movie) => {
     // Name filter
@@ -167,14 +180,17 @@ function applyFilters() {
       return false;
     }
 
-    // Date filters
-    const movieDate = new Date(movie.watchedDate);
-    if (dateFromFilter && movieDate < new Date(dateFromFilter)) {
+    // --- THIS IS THE FIX ---
+    // Compare YYYY-MM-DD strings directly. This avoids all timezone problems.
+    const movieDate = movie.watchedDate; // 'YYYY-MM-DD'
+
+    if (dateFromFilter && movieDate < dateFromFilter) {
       return false;
     }
-    if (dateToFilter && movieDate > new Date(dateToFilter)) {
+    if (dateToFilter && movieDate > dateToFilter) {
       return false;
     }
+    // -----------------------
 
     return true;
   });
@@ -226,7 +242,8 @@ async function handleRemoveWatched(e) {
 
     if (!shouldRemove) return;
 
-    const response = await fetch(`/api/movies/${movieId}`, {
+    // Use the correct API route
+    const response = await fetch(`/api/watched/${movieId}`, {
       method: 'DELETE',
     });
 
@@ -313,6 +330,7 @@ async function handleReviewSubmit(e) {
 
 // Utility function to escape HTML
 function escapeHtml(text) {
+  if (!text) return '';
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
@@ -349,7 +367,9 @@ function showConfirmationModal(
           </div>
           <div class="modal-actions">
             <button type="button" class="btn-secondary" id="confirmCancel">Cancel</button>
-            <button type="button" class="btn-${type}" id="confirmOk">${escapeHtml(confirmText)}</button>
+            <button type="button" class="btn-${type}" id="confirmOk">${escapeHtml(
+              confirmText
+            )}</button>
           </div>
         </div>
       </div>

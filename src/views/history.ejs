@@ -1,162 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>History - Movie Watchlist</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <header>
-      <nav>
-        <div class="container">
-          <a href="/" class="logo">Movie Watchlist</a>
-            <ul class="nav-links">
-              <li><a href="/">Home</a></li>
-              <li><a href="/history" class="active">History</a></li>
-              <li><a href="/settings">Settings</a></li>
-            </ul>
-        </div>
-      </nav>
-    </header>
-
-    <main class="container">
-      <section class="hero">
-        <h1>Movie History</h1>
-        <p>Your watched movies and reviews</p>
-      </section>
-
-      <section class="filters-section">
-        <h2>Filter History</h2>
-        <form class="movie-form">
-          <div class="form-group">
-            <input
-              type="text"
-              id="filterName"
-              placeholder="Search by name..."
-            />
-            <select id="filterGenre">
-              <option value="">All Genres</option>
-              <option value="action">Action</option>
-              <option value="comedy">Comedy</option>
-              <option value="drama">Drama</option>
-              <option value="horror">Horror</option>
-              <option value="romance">Romance</option>
-              <option value="sci-fi">Sci-Fi</option>
-              <option value="thriller">Thriller</option>
-            </select>
-            <div class="date-filter">
-              <label for="filterDateFrom">From:</label>
-              <input type="date" id="filterDateFrom" />
-            </div>
-            <div class="date-filter">
-              <label for="filterDateTo">To:</label>
-              <input type="date" id="filterDateTo" />
-            </div>
-            <button id="clearFilters" class="btn-secondary">
-              Clear Filters
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <section class="movie-history">
-        <div class="list-header">
-          <h2>Watched Movies</h2>
-          <div class="stats">
-            <span id="totalWatched">0 movies watched</span>
-          </div>
-        </div>
-
-        <div id="historyList" class="history-grid">
-          <% if (watchedMovies && watchedMovies.length > 0) { %>
-            <% watchedMovies.forEach(function(movie) { %>
-              <div class="movie-card" data-id="<%= movie.id %>">
-                <div class="movie-header">
-                  <h3 class="movie-title"><%= movie.title %></h3>
-                  <span class="movie-genre"><%= movie.genre %></span>
-                </div>
-                <div class="movie-details">
-                  <div class="movie-rating">
-                    <span>Rating:</span>
-                    <div class="stars">
-                      <% for(let i = 1; i <= 5; i++) { %>
-                        <%= i <= movie.rating ? '★' : '☆' %>
-                      <% } %>
-                    </div>
-                  </div>
-                  <div class="watch-date">Watched: <%= new Date(movie.watchedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></div>
-                  <% if (movie.review) { %>
-                    <div class="movie-review"><strong>Review:</strong> <%= movie.review %></div>
-                  <% } %>
-                </div>
-                <div class="movie-actions">
-                  <button class="btn-secondary edit-review-btn" data-movie-id="<%= movie.id %>">Edit Review</button>
-                  <button class="btn-danger remove-watched-btn" data-movie-id="<%= movie.id %>">Remove</button>
-                </div>
-              </div>
-            <% }); %>
-          <% } else { %>
-            <div class="empty-state">
-              <h3>No movies watched yet!</h3>
-              <p>Mark movies as watched from your <a href="/">watchlist</a> to see them here.</p>
-            </div>
-          <% } %>
-        </div>
-      </section>
-
-      <!-- Review Modal -->
-      <div id="reviewModal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>Edit Review</h3>
-            <span class="close">&times;</span>
-          </div>
-          <div class="modal-body">
-            <form id="reviewForm">
-              <div class="form-group">
-                <label for="reviewText">Your Review:</label>
-                <textarea
-                  id="reviewText"
-                  placeholder="Write your review..."
-                  rows="4"
-                ></textarea>
-              </div>
-              <div class="form-group">
-                <label for="rating">Rating:</label>
-                <select id="rating">
-                  <option value="1">1 Star</option>
-                  <option value="2">2 Stars</option>
-                  <option value="3">3 Stars</option>
-                  <option value="4">4 Stars</option>
-                  <option value="5">5 Stars</option>
-                </select>
-              </div>
-              <div class="modal-actions">
-                <button type="submit" class="btn-primary">Save Review</button>
-                <button type="button" class="btn-secondary" id="cancelReview">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <footer>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>History - Movie Watchlist</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <header>
+    <nav>
       <div class="container">
-        <p>&copy; 2025 Movie Watchlist App. All rights reserved.</p>
+        <a href="/" class="logo">Movie Watchlist</a>
+        <ul class="nav-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/history" class="active">History</a></li>
+          <li><a href="/settings">Settings</a></li>
+        </ul>
       </div>
-    </footer>
+    </nav>
+  </header>
 
-    <script src="/js/main.js"></script>
-    <script src="/js/history.js"></script>
-  </body>
+  <main class="container">
+    <section class="hero">
+      <h1>Movie History</h1>
+      <p>Your watched movies and reviews</p>
+    </section>
+
+    <section class="filters-section">
+      <h2>Filter History</h2>
+      <form class="movie-form">
+        <div class="form-group">
+          <input
+            type="text"
+            id="filterName"
+            placeholder="Search by name..."
+          />
+          <select id="filterGenre">
+            <option value="">All Genres</option>
+            <option value="action">Action</option>
+            <option value="comedy">Comedy</option>
+            <option value="drama">Drama</option>
+            <option value="horror">Horror</option>
+            <option value="romance">Romance</option>
+            <option value="sci-fi">Sci-Fi</option>
+            <option value="thriller">Thriller</option>
+          </select>
+          <div class="date-filter">
+            <label for="filterDateFrom">From:</label>
+            <input type="date" id="filterDateFrom" />
+          </div>
+          <div class="date-filter">
+            <label for="filterDateTo">To:</label>
+            <input type="date" id="filterDateTo" />
+          </div>
+          <button id="clearFilters" class="btn-secondary">
+            Clear Filters
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="movie-history">
+      <div class="list-header">
+        <h2>Watched Movies</h2>
+        <div class="stats">
+          <span id="totalWatched">0 movies watched</span>
+        </div>
+      </div>
+
+      <div id="historyList" class="history-grid">
+        <% if (watchedMovies && watchedMovies.length > 0) { %>
+          <% watchedMovies.forEach(function(movie) { %>
+            <div class="movie-card" data-id="<%= movie.id %>">
+              <div class="movie-header">
+                <h3 class="movie-title"><%= movie.title %></h3>
+                <span class="movie-genre"><%= movie.genre %></span>
+              </div>
+              <div class="movie-details">
+                <div class="movie-rating">
+                  <span>Rating:</span>
+                  <div class="stars">
+                    <% for(let i = 1; i <= 5; i++) { %>
+                      <%= i <= movie.rating ? '★' : '☆' %>
+                    <% } %>
+                  </div>
+                </div>
+                <div class="watch-date">Watched: <%= new Date(movie.watchedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }) %></div>
+                <% if (movie.review) { %>
+                  <div class="movie-review"><strong>Review:</strong> <%= movie.review %></div>
+                <% } %>
+              </div>
+              <div class="movie-actions">
+                <button class="btn-secondary edit-review-btn" data-movie-id="<%= movie.id %>">Edit Review</button>
+                <button class="btn-danger remove-watched-btn" data-movie-id="<%= movie.id %>">Remove</button>
+              </div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <div class="empty-state">
+            <h3>No movies watched yet!</h3>
+            <p>Mark movies as watched from your <a href="/">watchlist</a> to see them here.</p>
+          </div>
+        <% } %>
+      </div>
+    </section>
+
+    <div id="reviewModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Review</h3>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <form id="reviewForm">
+            <div class="form-group">
+              <label for="reviewText">Your Review:</label>
+              <textarea
+                id="reviewText"
+                placeholder="Write your review..."
+                rows="4"
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label for="rating">Rating:</label>
+              <select id="rating">
+                <option value="1">1 Star</option>
+                <option value="2">2 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="5">5 Stars</option>
+              </select>
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="btn-primary">Save Review</button>
+              <button type="button" class="btn-secondary" id="cancelReview">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Movie Watchlist App. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/history.js"></script>
+</body>
 </html>
