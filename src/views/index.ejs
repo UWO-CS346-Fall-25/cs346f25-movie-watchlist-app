@@ -11,7 +11,6 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-
   </head>
   <body>
     <header>
@@ -45,10 +44,10 @@
           </button>
         </div>
 
-        <!-- Add Movie Form (Initially Hidden) -->
-        <div id="addMovieForm" class="form-panel" style="display: none;">
+        <div id="addMovieForm" class="form-panel" style="display: none">
           <h3>Add New Movie</h3>
           <form class="movie-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
             <div class="form-group">
               <input
                 type="text"
@@ -76,14 +75,15 @@
               </select>
               <div class="form-actions">
                 <button type="submit" class="btn-primary">Add Movie</button>
-                <button type="button" id="cancelAdd" class="btn-secondary">Cancel</button>
+                <button type="button" id="cancelAdd" class="btn-secondary">
+                  Cancel
+                </button>
               </div>
             </div>
           </form>
         </div>
 
-        <!-- Filter Form (Initially Hidden) -->
-        <div id="filterForm" class="form-panel" style="display: none;">
+        <div id="filterForm" class="form-panel" style="display: none">
           <h3>Filter Movies</h3>
           <form class="filter-form">
             <div class="form-group">
@@ -111,8 +111,12 @@
                 <option value="5">5 - High</option>
               </select>
               <div class="form-actions">
-                <button type="button" id="clearFilters" class="btn-secondary">Clear Filters</button>
-                <button type="button" id="cancelFilter" class="btn-secondary">Cancel</button>
+                <button type="button" id="clearFilters" class="btn-secondary">
+                  Clear Filters
+                </button>
+                <button type="button" id="cancelFilter" class="btn-secondary">
+                  Cancel
+                </button>
               </div>
             </div>
           </form>
@@ -126,35 +130,47 @@
         </div>
 
         <div id="movieList" class="movie-grid">
-          <% if (movies && movies.length > 0) { %>
-            <% movies.forEach(function(movie) { %>
-              <div class="movie-card" data-id="<%= movie.id %>">
-                <div class="movie-header">
-                  <h3 class="movie-title"><%= movie.title %></h3>
-                  <span class="movie-genre"><%= movie.genre %></span>
-                </div>
-                <div class="movie-details">
-                  <div class="desire-scale">
-                    <span>Desire to watch:</span>
-                    <div class="stars">
-                      <% for(let i = 1; i <= 5; i++) { %>
-                        <%= i <= movie.desireScale ? '★' : '☆' %>
-                      <% } %>
-                    </div>
-                  </div>
-                  <div class="watch-date">Added: <%= new Date(movie.dateAdded).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></div>
-                </div>
-                <div class="movie-actions">
-                  <button class="btn-primary mark-watched-btn" data-movie-id="<%= movie.id %>">Mark Watched</button>
-                  <button class="btn-danger remove-movie-btn" data-movie-id="<%= movie.id %>">Remove</button>
+          <% if (movies && movies.length > 0) { %> <%
+          movies.forEach(function(movie) { %>
+          <div class="movie-card" data-id="<%= movie.id %>">
+            <div class="movie-header">
+              <h3 class="movie-title"><%= movie.title %></h3>
+              <span class="movie-genre"><%= movie.genre %></span>
+            </div>
+            <div class="movie-details">
+              <div class="desire-scale">
+                <span>Desire to watch:</span>
+                <div class="stars">
+                  <% for(let i = 1; i <= 5; i++) { %> <%= i <=
+                  movie.desireScale ? '★' : '☆' %> <% } %>
                 </div>
               </div>
-            <% }); %>
-          <% } else { %>
-            <div class="empty-state">
-              <h3>No movies in your watchlist yet!</h3>
-              <p>Add your first movie above to get started.</p>
+              <div class="watch-date">
+                Added: <%= new Date(movie.dateAdded).toLocaleDateString('en-US',
+                { year: 'numeric', month: 'short', day: 'numeric', timeZone:
+                'UTC' }) %>
+              </div>
             </div>
+            <div class="movie-actions">
+              <button
+                class="btn-primary mark-watched-btn"
+                data-movie-id="<%= movie.id %>"
+              >
+                Mark Watched
+              </button>
+              <button
+                class="btn-danger remove-movie-btn"
+                data-movie-id="<%= movie.id %>"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+          <% }); %> <% } else { %>
+          <div class="empty-state">
+            <h3>No movies in your watchlist yet!</h3>
+            <p>Add your first movie above to get started.</p>
+          </div>
           <% } %>
         </div>
       </section>
@@ -167,5 +183,15 @@
     </footer>
 
     <script src="/js/main.js"></script>
+
+    <% if (typeof showWelcome !== 'undefined' && showWelcome) { %>
+    <script>
+      // Wait for the DOM to be loaded so showNotification() is available
+      document.addEventListener('DOMContentLoaded', function () {
+        // Use the email from the user object
+        showNotification('Welcome back, <%= user.email %>!', 'success');
+      });
+    </script>
+    <% } %>
   </body>
 </html>

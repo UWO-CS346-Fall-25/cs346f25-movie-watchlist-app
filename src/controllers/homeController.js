@@ -30,6 +30,12 @@ exports.getHome = async (req, res) => {
       return res.redirect('/users/login');
     }
 
+    // Check for our one-time welcome message
+    const showWelcome = req.session.showWelcomeMessage || false;
+    if (showWelcome) {
+      delete req.session.showWelcomeMessage; // Delete it so it only shows once
+    }
+
     const movies = await movieModel.getAllWatchlistMovies(userId);
 
     res.render('index', {
@@ -38,6 +44,7 @@ exports.getHome = async (req, res) => {
       csrfToken: req.csrfToken ? req.csrfToken() : '',
       movies: movies,
       totalMovies: movies.length,
+      showWelcome: showWelcome,
     });
   } catch (error) {
     console.error('Error loading home page:', error);
@@ -47,6 +54,7 @@ exports.getHome = async (req, res) => {
       csrfToken: req.csrfToken ? req.csrfToken() : '',
       movies: [],
       totalMovies: 0,
+      showWelcome: false,
     });
   }
 };
