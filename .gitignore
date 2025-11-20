@@ -66,8 +66,10 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variable files
-.env
-.env.*
+# .env file is now committed so team can use shared API key
+# .env
+.env.local
+.env.*.local
 !.env.example
 
 # parcel-bundler cache (https://parceljs.org/)

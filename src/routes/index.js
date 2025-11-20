@@ -5,6 +5,7 @@
  * - Home
  * - History
  * - Settings
+ * - Search (Movie API)
  */
 
 const express = require('express');
@@ -13,6 +14,14 @@ const homeController = require('../controllers/homeController');
 
 // Home page route
 router.get('/', homeController.getHome);
+
+// Search page route (for TMDB API integration)
+router.get('/search', (req, res) => {
+  res.render('search', {
+    title: 'Search Movies',
+    user: req.session.user || null,
+  });
+});
 
 // History page route
 router.get('/history', homeController.getHistory);

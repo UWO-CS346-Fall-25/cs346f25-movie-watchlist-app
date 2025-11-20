@@ -2,6 +2,61 @@
 
 A web application that allows users to track movies they want to watch and have already watched, providing a seamless way to manage your movie-watching experience.
 
+## External API Integration
+
+### TMDB (The Movie Database) API
+
+This application integrates with The Movie Database (TMDB) API to provide real-time movie search functionality.
+
+**API Details:**
+
+- **API Name:** The Movie Database (TMDB) API
+- **Base URL:** `https://api.themoviedb.org/3`
+- **Authentication:** Free API key required (no credit card needed)
+- **Data Format:** JSON
+- **Documentation:** https://developers.themoviedb.org/3
+
+**Endpoints Used:**
+
+1. **Search Movies:** `GET /search/movie`
+   - Returns movie search results based on query
+   - Parameters: `query` (search term), `language`, `page`
+
+2. **Popular Movies:** `GET /movie/popular`
+   - Returns currently popular movies
+   - Parameters: `language`, `page`
+
+3. **Movie Details:** `GET /movie/{movie_id}`
+   - Returns detailed information about a specific movie
+   - Parameters: `movie_id`
+
+**Feature Flow:**
+
+1. User navigates to `/search` page
+2. User enters search query in the form
+3. Frontend JavaScript sends GET request to `/api/search/movies?query=searchTerm`
+4. Express controller (`apiController.js`) receives request
+5. Controller makes server-side fetch call to TMDB API with API key
+6. TMDB API returns JSON movie data
+7. Controller processes and returns data to frontend
+8. EJS view (`search.ejs`) renders movie cards with posters, titles, ratings
+9. Popular movies are loaded automatically on page load using `/api/movies/popular`
+
+**Routes:**
+
+- `GET /search` - Renders the movie search page
+- `GET /api/search/movies?query=<term>` - Server-side API call to search movies
+- `GET /api/movies/popular` - Server-side API call to get popular movies
+- `GET /api/movies/tmdb/:tmdbId` - Server-side API call to get movie details
+
+**Security:**
+
+- API key stored in `.env` file (never committed to git)
+- All API calls made server-side to protect API key
+- Error handling for rate limits and network failures
+- Input validation on search queries
+
+
 ## Pages and Features
 
 ### feature/week11 improvements

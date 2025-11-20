@@ -98,10 +98,32 @@ function renderMovies() {
     .map(
       (movie) => `
     <div class="movie-card" data-id="${movie.id}">
+      ${
+        movie.posterPath
+          ? `
+      <div class="movie-poster-container">
+        <img
+          src="https://image.tmdb.org/t/p/w300${movie.posterPath}"
+          alt="${escapeHtml(movie.title)} poster"
+          class="movie-poster-img"
+        />
+      </div>
+      `
+          : ''
+      }
       <div class="movie-header">
         <h3 class="movie-title">${escapeHtml(movie.title)}</h3>
         <span class="movie-genre">${escapeHtml(movie.genre)}</span>
       </div>
+      ${
+        movie.overview
+          ? `
+      <div class="movie-overview">
+        ${escapeHtml(movie.overview.substring(0, 120))}${movie.overview.length > 120 ? '...' : ''}
+      </div>
+      `
+          : ''
+      }
       <div class="movie-details">
         <div class="movie-rating">
           <span>Rating:</span>
@@ -336,13 +358,17 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Show notification (uses function from main.js)
+/**
+ * Show notification to user
+ * Delegates to main.js notification function if available
+ * @param {string} message - Notification message
+ * @param {string} type - Notification type (info, success, error)
+ */
 function showNotification(message, type = 'info') {
   if (typeof window.showNotification === 'function') {
     window.showNotification(message, type);
   } else {
     // Fallback if main.js notification function isn't available
-    console.log(`${type.toUpperCase()}: ${message}`);
     alert(message);
   }
 }
