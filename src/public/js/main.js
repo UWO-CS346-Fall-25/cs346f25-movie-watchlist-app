@@ -14,8 +14,6 @@
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('Application initialized');
-
   // Example: Form validation
   initFormValidation();
 
@@ -256,10 +254,32 @@ function renderMovies(movies = []) {
     .map(
       (movie) => `
     <div class="movie-card" data-id="${movie.id}">
+      ${
+        movie.posterPath
+          ? `
+      <div class="movie-poster-container">
+        <img
+          src="https://image.tmdb.org/t/p/w300${movie.posterPath}"
+          alt="${movie.title} poster"
+          class="movie-poster-img"
+        />
+      </div>
+      `
+          : ''
+      }
       <div class="movie-header">
         <h3 class="movie-title">${movie.title}</h3>
         <span class="movie-genre">${movie.genre}</span>
       </div>
+      ${
+        movie.overview
+          ? `
+      <div class="movie-overview">
+        ${movie.overview.substring(0, 120)}${movie.overview.length > 120 ? '...' : ''}
+      </div>
+      `
+          : ''
+      }
       <div class="movie-details">
         <div class="desire-scale">
           <span>Desire to watch:</span>
@@ -299,17 +319,9 @@ async function handleAddMovie(e) {
   const genreElement = document.getElementById('movieGenre');
   const desireScaleElement = document.getElementById('desireScale');
 
-  console.log('Form elements found:', {
-    titleElement,
-    genreElement,
-    desireScaleElement,
-  });
-
   const title = titleElement?.value;
   const genre = genreElement?.value;
   const desireScale = desireScaleElement?.value;
-
-  console.log('Form values:', { title, genre, desireScale });
 
   if (!title || !genre || !desireScale) {
     console.error('Missing form values');
@@ -328,8 +340,6 @@ async function handleAddMovie(e) {
 
     const result = await response.json();
 
-    console.log('Add movie response:', result);
-
     if (result.success) {
       movieForm.reset();
       loadMovies(); // Refresh the movie list
@@ -342,6 +352,255 @@ async function handleAddMovie(e) {
     console.error('Error adding movie:', error);
     showNotification('Error adding movie', 'error');
   }
+}
+
+// TMDB Search Functions
+async function searchMovies() {
+  const query = document.getElementById('movieSearchInput').value.trim();
+
+  if (!query) {
+    showNotification('Please enter a movie name to search', 'error');
+    return;
+  }
+
+  const searchResults = document.getElementById('searchResults');
+  searchResults.innerHTML =
+    '<div class="loading-spinner">Searching for movies...</div>';
+
+  try {
+    const response = await fetch(
+      `/api/search/movies?query=${encodeURIComponent(query)}`
+    );
+    const data = await response.json();
+
+    if (!data.success) {
+      searchResults.innerHTML = `<div class="no-results"><h4>Error</h4><p>${data.error}</p></div>`;
+      return;
+    }
+
+    if (data.results.length === 0) {
+      searchResults.innerHTML =
+        '<div class="no-results"><h4>No movies found</h4><p>Try a different search term</p></div>';
+      return;
+    }
+
+    displaySearchResults(data.results);
+  } catch (error) {
+    console.error('Search error:', error);
+    searchResults.innerHTML =
+      '<div class="no-results"><h4>Error</h4><p>Failed to search movies. Please try again.</p></div>';
+  }
+}
+
+function displaySearchResults(movies) {
+  const searchResults = document.getElementById('searchResults');
+
+  searchResults.innerHTML = movies
+    .map((movie) => {
+      const posterUrl = movie.poster_path
+        ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
+        : null;
+      const year = movie.release_date
+        ? new Date(movie.release_date).getFullYear()
+        : 'N/A';
+      const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+
+      return `
+      <div class="search-result-item" onclick="selectMovie(${movie.id})">
+        ${
+          posterUrl
+            ? `<img src="${posterUrl}" alt="${movie.title}" class="search-result-poster" />`
+            : '<div class="search-result-poster placeholder">🎬</div>'
+        }
+        <div class="search-result-info">
+          <div class="search-result-title">${movie.title}</div>
+          <div class="search-result-meta">
+            <span>📅 ${year}</span>
+            <span>⭐ ${rating}</span>
+          </div>
+          <div class="search-result-overview">${movie.overview || 'No description available.'}</div>
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+}
+
+window.selectMovie = async function (tmdbId) {
+  try {
+    const response = await fetch(`/api/movies/tmdb/${tmdbId}`);
+    const data = await response.json();
+
+    if (!data.success) {
+      showNotification('Failed to load movie details', 'error');
+      return;
+    }
+
+    const movie = data.movie;
+
+    // Store movie data in hidden fields
+    document.getElementById('tmdbId').value = movie.id;
+    document.getElementById('finalTitle').value = movie.title;
+    document.getElementById('posterPath').value = movie.poster_path || '';
+    document.getElementById('overview').value = movie.overview || '';
+    document.getElementById('releaseDate').value = movie.release_date || '';
+    document.getElementById('voteAverage').value = movie.vote_average || '';
+
+    // Map TMDB genre to our genre options
+    const genre = mapTMDBGenre(movie.genres);
+    document.getElementById('finalGenre').value = genre;
+
+    // Display selected movie
+    const posterUrl = movie.poster_path
+      ? `https://image.tmdb.org/t/p/w300${movie.poster_path}`
+      : '/images/placeholder-poster.png';
+
+    document.getElementById('selectedPoster').src = posterUrl;
+    document.getElementById('selectedTitle').textContent = movie.title;
+    document.getElementById('selectedYear').textContent = movie.release_date
+      ? `Released: ${new Date(movie.release_date).getFullYear()}`
+      : '';
+    document.getElementById('selectedOverview').textContent =
+      movie.overview || 'No description available.';
+
+    // Show confirm step
+    showConfirmStep();
+  } catch (error) {
+    console.error('Error selecting movie:', error);
+    showNotification('Failed to load movie details', 'error');
+  }
+};
+
+function mapTMDBGenre(genres) {
+  if (!genres || genres.length === 0) return 'drama';
+
+  const genreMap = {
+    Action: 'action',
+    Comedy: 'comedy',
+    Drama: 'drama',
+    Horror: 'horror',
+    Romance: 'romance',
+    'Science Fiction': 'sci-fi',
+    Thriller: 'thriller',
+  };
+
+  for (const genre of genres) {
+    if (genreMap[genre.name]) {
+      return genreMap[genre.name];
+    }
+  }
+
+  return 'drama';
+}
+
+async function handleAddMovieFromTMDB(e) {
+  e.preventDefault();
+
+  const title = document.getElementById('finalTitle').value;
+  const genre = document.getElementById('finalGenre').value;
+  const desireScale = document.getElementById('desireScale').value;
+  const tmdbId = document.getElementById('tmdbId').value;
+  const posterPath = document.getElementById('posterPath').value;
+  const overview = document.getElementById('overview').value;
+  const releaseDate = document.getElementById('releaseDate').value;
+  const voteAverage = document.getElementById('voteAverage').value;
+
+  if (!desireScale) {
+    showNotification('Please select your desire level', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/movies', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title,
+        genre,
+        desireScale,
+        tmdbId,
+        posterPath,
+        overview,
+        releaseDate,
+        voteAverage,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      document.getElementById('addMovieForm').style.display = 'none';
+      document.getElementById('finalAddForm').reset();
+      document.getElementById('movieSearchInput').value = '';
+      showSearchStep();
+      loadMovies();
+      showNotification('Movie added to your watchlist!', 'success');
+    } else {
+      showNotification(result.error || 'Failed to add movie', 'error');
+    }
+  } catch (error) {
+    console.error('Error adding movie:', error);
+    showNotification('Error adding movie', 'error');
+  }
+}
+
+async function handleAddMovieManual(e) {
+  e.preventDefault();
+
+  const title = document.getElementById('manualTitle').value;
+  const genre = document.getElementById('manualGenre').value;
+  const desireScale = document.getElementById('manualDesire').value;
+
+  if (!title || !genre || !desireScale) {
+    showNotification('Please fill in all fields', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/movies', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, genre, desireScale }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      document.getElementById('addMovieForm').style.display = 'none';
+      document.getElementById('manualAddForm').reset();
+      showSearchStep();
+      loadMovies();
+      showNotification('Movie added successfully!', 'success');
+    } else {
+      showNotification(result.error || 'Failed to add movie', 'error');
+    }
+  } catch (error) {
+    console.error('Error adding movie:', error);
+    showNotification('Error adding movie', 'error');
+  }
+}
+
+function showSearchStep() {
+  document.getElementById('searchStep').style.display = 'block';
+  document.getElementById('confirmStep').style.display = 'none';
+  document.getElementById('manualStep').style.display = 'none';
+  document.getElementById('searchResults').innerHTML = '';
+}
+
+function showConfirmStep() {
+  document.getElementById('searchStep').style.display = 'none';
+  document.getElementById('confirmStep').style.display = 'block';
+  document.getElementById('manualStep').style.display = 'none';
+}
+
+function showManualStep() {
+  document.getElementById('searchStep').style.display = 'none';
+  document.getElementById('confirmStep').style.display = 'none';
+  document.getElementById('manualStep').style.display = 'block';
 }
 
 async function handleMarkAsWatched(e) {
@@ -519,13 +778,29 @@ function initializeHome() {
   if (!document.getElementById('movieList')) return;
 
   // Get form elements
-  const movieForm = document.querySelector('#addMovieForm .movie-form');
+  const movieForm = document.querySelector('#finalAddForm');
+  const manualAddForm = document.querySelector('#manualAddForm');
   const addMovieBtn = document.getElementById('addMovieBtn');
   const filterMoviesBtn = document.getElementById('filterMoviesBtn');
   const addMovieForm = document.getElementById('addMovieForm');
   const filterForm = document.getElementById('filterForm');
   const cancelAdd = document.getElementById('cancelAdd');
+  const cancelManual = document.getElementById('cancelManual');
   const cancelFilter = document.getElementById('cancelFilter');
+  const cancelSearch = document.getElementById('cancelSearch');
+
+  // TMDB search elements
+  const searchStep = document.getElementById('searchStep');
+  const confirmStep = document.getElementById('confirmStep');
+  const manualStep = document.getElementById('manualStep');
+  const movieSearchInput = document.getElementById('movieSearchInput');
+  const searchMovieBtn = document.getElementById('searchMovieBtn');
+  const searchResults = document.getElementById('searchResults');
+  const manualEntryBtn = document.getElementById('manualEntryBtn');
+  const backToSearch = document.getElementById('backToSearch');
+  const backToSearchFromManual = document.getElementById(
+    'backToSearchFromManual'
+  );
 
   // Form toggle functionality
   if (addMovieBtn) {
@@ -533,6 +808,10 @@ function initializeHome() {
       filterForm.style.display = 'none';
       addMovieForm.style.display =
         addMovieForm.style.display === 'none' ? 'block' : 'none';
+      // Reset to search step
+      if (addMovieForm.style.display === 'block') {
+        showSearchStep();
+      }
     });
   }
 
@@ -548,6 +827,24 @@ function initializeHome() {
     cancelAdd.addEventListener('click', () => {
       addMovieForm.style.display = 'none';
       if (movieForm) movieForm.reset();
+      showSearchStep();
+    });
+  }
+
+  if (cancelManual) {
+    cancelManual.addEventListener('click', () => {
+      addMovieForm.style.display = 'none';
+      if (manualAddForm) manualAddForm.reset();
+      showSearchStep();
+    });
+  }
+
+  if (cancelSearch) {
+    cancelSearch.addEventListener('click', () => {
+      addMovieForm.style.display = 'none';
+      movieSearchInput.value = '';
+      searchResults.innerHTML = '';
+      showSearchStep();
     });
   }
 
@@ -558,8 +855,36 @@ function initializeHome() {
     });
   }
 
+  // TMDB search event listeners
+  if (searchMovieBtn) {
+    searchMovieBtn.addEventListener('click', searchMovies);
+  }
+
+  if (movieSearchInput) {
+    movieSearchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchMovies();
+      }
+    });
+  }
+
+  if (manualEntryBtn) {
+    manualEntryBtn.addEventListener('click', showManualStep);
+  }
+
+  if (backToSearch) {
+    backToSearch.addEventListener('click', showSearchStep);
+  }
+
+  if (backToSearchFromManual) {
+    backToSearchFromManual.addEventListener('click', showSearchStep);
+  }
+
   // Event listeners
-  if (movieForm) movieForm.addEventListener('submit', handleAddMovie);
+  if (movieForm) movieForm.addEventListener('submit', handleAddMovieFromTMDB);
+  if (manualAddForm)
+    manualAddForm.addEventListener('submit', handleAddMovieManual);
   if (filterName) filterName.addEventListener('input', filterMovies);
   if (filterGenre) filterGenre.addEventListener('change', filterMovies);
   if (filterDesire) filterDesire.addEventListener('change', filterMovies);

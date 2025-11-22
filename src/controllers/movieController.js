@@ -54,16 +54,17 @@ exports.getWatchedMovies = async (req, res) => {
 // Add a new movie
 exports.addMovie = async (req, res) => {
   try {
-    const { title, genre, desireScale } = req.body;
-    const userId = getUserId(req);
-
-    console.log('Add movie request:', {
+    const {
       title,
       genre,
       desireScale,
-      userId,
-      sessionUser: req.session?.user,
-    });
+      tmdbId,
+      posterPath,
+      overview,
+      releaseDate,
+      voteAverage,
+    } = req.body;
+    const userId = getUserId(req);
 
     if (!title || !genre || !desireScale) {
       return res
@@ -78,10 +79,20 @@ exports.addMovie = async (req, res) => {
       });
     }
 
-    const newMovie = await movieModel.addMovie(
-      { title, genre, desireScale },
-      userId
-    );
+    const movieData = {
+      title,
+      genre,
+      desireScale,
+    };
+
+    // Add optional TMDB fields if provided
+    if (tmdbId) movieData.tmdbId = tmdbId;
+    if (posterPath) movieData.posterPath = posterPath;
+    if (overview) movieData.overview = overview;
+    if (releaseDate) movieData.releaseDate = releaseDate;
+    if (voteAverage) movieData.voteAverage = voteAverage;
+
+    const newMovie = await movieModel.addMovie(movieData, userId);
 
     if (!newMovie) {
       return res.status(500).json({
@@ -90,7 +101,6 @@ exports.addMovie = async (req, res) => {
       });
     }
 
-    console.log('Movie added successfully:', newMovie);
     res.json({ success: true, movie: newMovie });
   } catch (error) {
     console.error('Error adding movie:', error);
@@ -166,8 +176,6 @@ exports.removeWatchedMovie = async (req, res) => {
     const movieId = req.params.id;
     const userId = getUserId(req);
 
-    console.log('Remove watched movie request:', { movieId, userId });
-
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -181,7 +189,6 @@ exports.removeWatchedMovie = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Movie not found' });
     }
 
-    console.log('Watched movie removed successfully');
     res.json({ success: true });
   } catch (error) {
     console.error('Error removing watched movie:', error);

@@ -103,6 +103,11 @@ exports.getAllWatchlistMovies = async (userId = null) => {
       desireScale: movie.desire_scale,
       dateAdded: movie.date_added,
       watched: movie.watched,
+      tmdbId: movie.tmdb_id,
+      posterPath: movie.poster_path,
+      overview: movie.overview,
+      releaseDate: movie.release_date,
+      voteAverage: movie.vote_average,
     }));
   } catch (error) {
     console.error('Error fetching watchlist movies:', error);
@@ -141,6 +146,11 @@ exports.getAllWatchedMovies = async (userId = null) => {
       watchedDate: movie.watched_date,
       rating: movie.rating,
       review: movie.review,
+      tmdbId: movie.tmdb_id,
+      posterPath: movie.poster_path,
+      overview: movie.overview,
+      releaseDate: movie.release_date,
+      voteAverage: movie.vote_average,
     }));
   } catch (error) {
     console.error('Error fetching watched movies:', error);
@@ -233,18 +243,25 @@ exports.addMovie = async (movie, userId = null) => {
       return null;
     }
 
+    const movieData = {
+      user_id: userId,
+      title: movie.title,
+      genre: movie.genre,
+      desire_scale: parseInt(movie.desireScale),
+      watched: false,
+    };
+
+    // Add optional TMDB fields if provided
+    if (movie.tmdbId) movieData.tmdb_id = parseInt(movie.tmdbId);
+    if (movie.posterPath) movieData.poster_path = movie.posterPath;
+    if (movie.overview) movieData.overview = movie.overview;
+    if (movie.releaseDate) movieData.release_date = movie.releaseDate;
+    if (movie.voteAverage)
+      movieData.vote_average = parseFloat(movie.voteAverage);
+
     const { data, error } = await supabase
       .from('movies')
-      .insert([
-        {
-          user_id: userId,
-          title: movie.title,
-          genre: movie.genre,
-          desire_scale: parseInt(movie.desireScale),
-          // date_added field is removed - let the DB use DEFAULT CURRENT_DATE
-          watched: false,
-        },
-      ])
+      .insert([movieData])
       .select()
       .single();
 
@@ -260,6 +277,11 @@ exports.addMovie = async (movie, userId = null) => {
       desireScale: data.desire_scale,
       dateAdded: data.date_added,
       watched: data.watched,
+      tmdbId: data.tmdb_id,
+      posterPath: data.poster_path,
+      overview: data.overview,
+      releaseDate: data.release_date,
+      voteAverage: data.vote_average,
     };
   } catch (error) {
     console.error('Error adding movie:', error);
