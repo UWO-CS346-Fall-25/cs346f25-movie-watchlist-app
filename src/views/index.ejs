@@ -46,41 +46,117 @@
 
         <div id="addMovieForm" class="form-panel" style="display: none">
           <h3>Add New Movie</h3>
-          <form class="movie-form">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            <div class="form-group">
+
+          <!-- Step 1: Search for movie -->
+          <div id="searchStep" class="add-movie-step">
+            <div class="search-box">
               <input
                 type="text"
-                id="movieTitle"
-                placeholder="Movie Title"
-                required
+                id="movieSearchInput"
+                placeholder="Search for a movie..."
+                autocomplete="off"
               />
-              <select id="movieGenre" required>
-                <option value="">Select Genre</option>
-                <option value="action">Action</option>
-                <option value="comedy">Comedy</option>
-                <option value="drama">Drama</option>
-                <option value="horror">Horror</option>
-                <option value="romance">Romance</option>
-                <option value="sci-fi">Sci-Fi</option>
-                <option value="thriller">Thriller</option>
-              </select>
-              <select id="desireScale" required>
-                <option value="">Desire to Watch</option>
-                <option value="1">1 - Low</option>
-                <option value="2">2</option>
-                <option value="3">3 - Medium</option>
-                <option value="4">4</option>
-                <option value="5">5 - High</option>
-              </select>
+              <button type="button" id="searchMovieBtn" class="btn-primary">
+                Search
+              </button>
+              <button type="button" id="cancelSearch" class="btn-secondary">
+                Cancel
+              </button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+            <div class="manual-entry-link">
+              <button type="button" id="manualEntryBtn" class="btn-link">
+                Or enter movie details manually
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Confirm and set desire scale -->
+          <div id="confirmStep" class="add-movie-step" style="display: none">
+            <div class="selected-movie-card">
+              <img id="selectedPoster" class="selected-poster" alt="Movie poster" />
+              <div class="selected-info">
+                <h4 id="selectedTitle"></h4>
+                <p id="selectedYear" class="selected-meta"></p>
+                <p id="selectedOverview" class="selected-overview"></p>
+              </div>
+            </div>
+
+            <form class="movie-form" id="finalAddForm">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+              <input type="hidden" id="tmdbId" />
+              <input type="hidden" id="finalTitle" />
+              <input type="hidden" id="finalGenre" />
+              <input type="hidden" id="posterPath" />
+              <input type="hidden" id="overview" />
+              <input type="hidden" id="releaseDate" />
+              <input type="hidden" id="voteAverage" />
+
+              <div class="form-group">
+                <label for="desireScale">How much do you want to watch this?</label>
+                <select id="desireScale" required>
+                  <option value="">Select desire level</option>
+                  <option value="1">⭐ - Not very interested</option>
+                  <option value="2">⭐⭐ - Somewhat interested</option>
+                  <option value="3">⭐⭐⭐ - Interested</option>
+                  <option value="4">⭐⭐⭐⭐ - Very interested</option>
+                  <option value="5">⭐⭐⭐⭐⭐ - Must watch!</option>
+                </select>
+              </div>
+
               <div class="form-actions">
-                <button type="submit" class="btn-primary">Add Movie</button>
+                <button type="submit" class="btn-primary">Add to Watchlist</button>
+                <button type="button" id="backToSearch" class="btn-secondary">
+                  Back to Search
+                </button>
                 <button type="button" id="cancelAdd" class="btn-secondary">
                   Cancel
                 </button>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
+
+          <!-- Step 3: Manual entry fallback -->
+          <div id="manualStep" class="add-movie-step" style="display: none">
+            <form class="movie-form" id="manualAddForm">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="manualTitle"
+                  placeholder="Movie Title"
+                  required
+                />
+                <select id="manualGenre" required>
+                  <option value="">Select Genre</option>
+                  <option value="action">Action</option>
+                  <option value="comedy">Comedy</option>
+                  <option value="drama">Drama</option>
+                  <option value="horror">Horror</option>
+                  <option value="romance">Romance</option>
+                  <option value="sci-fi">Sci-Fi</option>
+                  <option value="thriller">Thriller</option>
+                </select>
+                <select id="manualDesire" required>
+                  <option value="">Desire to Watch</option>
+                  <option value="1">⭐ - Not very interested</option>
+                  <option value="2">⭐⭐ - Somewhat interested</option>
+                  <option value="3">⭐⭐⭐ - Interested</option>
+                  <option value="4">⭐⭐⭐⭐ - Very interested</option>
+                  <option value="5">⭐⭐⭐⭐⭐ - Must watch!</option>
+                </select>
+                <div class="form-actions">
+                  <button type="submit" class="btn-primary">Add Movie</button>
+                  <button type="button" id="backToSearchFromManual" class="btn-secondary">
+                    Back to Search
+                  </button>
+                  <button type="button" id="cancelManual" class="btn-secondary">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
 
         <div id="filterForm" class="form-panel" style="display: none">
@@ -133,10 +209,24 @@
           <% if (movies && movies.length > 0) { %> <%
           movies.forEach(function(movie) { %>
           <div class="movie-card" data-id="<%= movie.id %>">
+            <% if (movie.posterPath) { %>
+            <div class="movie-poster-container">
+              <img
+                src="https://image.tmdb.org/t/p/w300<%= movie.posterPath %>"
+                alt="<%= movie.title %> poster"
+                class="movie-poster-img"
+              />
+            </div>
+            <% } %>
             <div class="movie-header">
               <h3 class="movie-title"><%= movie.title %></h3>
               <span class="movie-genre"><%= movie.genre %></span>
             </div>
+            <% if (movie.overview) { %>
+            <div class="movie-overview">
+              <%= movie.overview.substring(0, 120) %><%= movie.overview.length > 120 ? '...' : '' %>
+            </div>
+            <% } %>
             <div class="movie-details">
               <div class="desire-scale">
                 <span>Desire to watch:</span>
