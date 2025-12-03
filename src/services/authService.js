@@ -5,6 +5,7 @@
  */
 
 const supabase = require('../config/supabase');
+const loggingService = require('./loggingService');
 
 class AuthService {
   /**
@@ -15,6 +16,8 @@ class AuthService {
    */
   async register(email, password) {
     try {
+      loggingService.logAuthAttempt(email, 'register');
+
       // Register user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: email,
@@ -22,8 +25,11 @@ class AuthService {
       });
 
       if (error) {
+        loggingService.logAuthFailure(email, error.message, 'register');
         throw new Error(`Registration failed: ${error.message}`);
       }
+
+      loggingService.logAuthSuccess(data.user.id, email, 'register');
 
       return {
         success: true,
@@ -33,7 +39,7 @@ class AuthService {
           'Registration successful! Please check your email to verify your account.',
       };
     } catch (error) {
-      console.error('Registration error:', error);
+      loggingService.logAuthFailure(email, error.message, 'register');
       return {
         success: false,
         error: error.message,
@@ -49,14 +55,19 @@ class AuthService {
    */
   async login(email, password) {
     try {
+      loggingService.logAuthAttempt(email, 'login');
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
       });
 
       if (error) {
+        loggingService.logAuthFailure(email, error.message, 'login');
         throw new Error(`Login failed: ${error.message}`);
       }
+
+      loggingService.logAuthSuccess(data.user.id, email, 'login');
 
       return {
         success: true,
@@ -64,7 +75,7 @@ class AuthService {
         session: data.session,
       };
     } catch (error) {
-      console.error('Login error:', error);
+      loggingService.logAuthFailure(email, error.message, 'login');
       return {
         success: false,
         error: error.message,
@@ -74,14 +85,20 @@ class AuthService {
 
   /**
    * Logout user
+   * @param {string} userId - Optional user ID for logging
    * @returns {Promise<Object>} Logout result
    */
-  async logout() {
+  async logout(userId = null) {
     try {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
+        loggingService.logAuthFailure('unknown', error.message, 'logout');
         throw new Error(`Logout failed: ${error.message}`);
+      }
+
+      if (userId) {
+        loggingService.logAuthSuccess(userId, 'unknown', 'logout');
       }
 
       return {
@@ -89,7 +106,7 @@ class AuthService {
         message: 'Logged out successfully',
       };
     } catch (error) {
-      console.error('Logout error:', error);
+      loggingService.logAuthFailure('unknown', error.message, 'logout');
       return {
         success: false,
         error: error.message,

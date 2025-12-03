@@ -5,6 +5,7 @@
  */
 
 const supabase = require('../config/supabase');
+const loggingService = require('../services/loggingService');
 
 // For backward compatibility, we'll keep some mock data as fallback
 const fallbackWatchlistMovies = [
@@ -66,7 +67,10 @@ async function getUserId(req = null) {
 
     return users[0].id;
   } catch (error) {
-    console.error('Error getting user ID:', error);
+    loggingService.error('Error getting user ID', {
+      error: error.message,
+      stack: error.stack
+    });
     throw error;
   }
 }

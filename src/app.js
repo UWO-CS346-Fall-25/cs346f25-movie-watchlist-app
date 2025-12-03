@@ -10,6 +10,10 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 // NEW: Import csurf
 const csurf = require('csurf');
+// NEW: Import logging system
+const { httpLogger, errorLogger } = require('./middleware/httpLogger');
+const loggingService = require('./services/loggingService');
+
 const app = express();
 
 // Import routes
@@ -20,6 +24,9 @@ const userRoutes = require('./routes/users');
 // View engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+
+// Logging middleware (must come early)
+app.use(httpLogger);
 
 // Middleware
 app.use(bodyParser.json());
@@ -86,6 +93,9 @@ app.use('/', mainRoutes);
 app.use('/api', apiRoutes);
 app.use('/users', userRoutes);
 
+// Error logging middleware (after routes, before error handlers)
+app.use(errorLogger);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).render('error', {
@@ -98,8 +108,22 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, _next) => {
+  // Log the error
+  loggingService.logApplicationError(err, {
+    url: req.url,
+    method: req.method,
+    userId: req.session?.user?.id,
+    userAgent: req.get('User-Agent')
+  });
+
   // Handle csurf errors
   if (err.code === 'EBADCSRFTOKEN') {
+    loggingService.logSecurityEvent('CSRF Token Invalid', req.session?.user?.id, {
+      url: req.url,
+      method: req.method,
+      userAgent: req.get('User-Agent')
+    });
+    
     res.status(403).render('error', {
       title: '403 - Forbidden',
       message: 'Invalid security token. Please try again.',
@@ -108,7 +132,6 @@ app.use((err, req, res, _next) => {
     return;
   }
 
-  console.error(err.stack);
   const status = err.status || 500;
   res.status(status).render('error', {
     title: 'Server Error',

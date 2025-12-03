@@ -9,6 +9,7 @@
  */
 
 const authService = require('../services/authService');
+const loggingService = require('../services/loggingService');
 
 /**
  * GET /users/register
@@ -30,7 +31,11 @@ exports.postRegister = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    console.log('Registration attempt for:', email);
+    loggingService.info('User registration attempt', {
+      email: email,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip
+    });
 
     // Validate input
     if (!email || !password) {
@@ -53,6 +58,12 @@ exports.postRegister = async (req, res, next) => {
     const result = await authService.register(email, password);
 
     if (!result.success) {
+      loggingService.warn('Registration failed', {
+        email: email,
+        error: result.error,
+        userAgent: req.get('User-Agent'),
+        ip: req.ip
+      });
       return res.render('register', {
         title: 'Register',
         error: result.error,
@@ -61,6 +72,12 @@ exports.postRegister = async (req, res, next) => {
     }
 
     // Success - redirect to login with success message
+    loggingService.info('User registration successful', {
+      email: email,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip
+    });
+    
     res.render('login', {
       title: 'Login',
       success: result.message,
@@ -68,7 +85,13 @@ exports.postRegister = async (req, res, next) => {
       csrfToken: req.csrfToken ? req.csrfToken() : '',
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    loggingService.error('Registration error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip
+    });
     next(error);
   }
 };
@@ -94,7 +117,12 @@ exports.postLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    console.log('Login attempt for:', email);
+    loggingService.info('User login attempt', {
+      email: email,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+      sessionId: req.sessionID
+    });
 
     // Validate input
     if (!email || !password) {
@@ -130,20 +158,34 @@ exports.postLogin = async (req, res, next) => {
       expires_at: result.session.expires_at,
     };
 
+    // Log session creation
+    loggingService.logSessionStart(req.sessionID, result.user.id);
+
     // show welcome message on login
     req.session.showWelcomeMessage = true;
 
     // Save session and redirect
     req.session.save((err) => {
       if (err) {
-        console.error('Session save error:', err);
+        loggingService.error('Session save error', {
+          error: err.message,
+          userId: result.user.id
+        });
         return next(err);
       }
-      console.log('Login successful, redirecting to home');
+      loggingService.info('Login successful', {
+        userId: result.user.id,
+        sessionId: req.sessionID
+      });
       res.redirect('/');
     });
   } catch (error) {
-    console.error('Login error:', error);
+    loggingService.error('Login error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email,
+      sessionId: req.sessionID
+    });
     next(error);
   }
 };
@@ -154,25 +196,54 @@ exports.postLogin = async (req, res, next) => {
  */
 exports.postLogout = async (req, res, next) => {
   try {
+    const userId = req.session?.user?.id;
+    const sessionId = req.sessionID;
+
+    loggingService.info('User logout attempt', {
+      userId,
+      sessionId,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip
+    });
+
     // Logout from Supabase Auth
     const result = await authService.logout();
 
     if (!result.success) {
-      console.error('Supabase logout error:', result.error);
+      loggingService.warn('Supabase logout error', {
+        error: result.error,
+        userId,
+        sessionId
+      });
       // Continue with session destruction even if Supabase logout fails
     }
 
     // Destroy local session
     req.session.destroy((err) => {
       if (err) {
-        console.error('Error destroying session:', err);
+        loggingService.error('Error destroying session', {
+          error: err.message,
+          userId,
+          sessionId
+        });
         return next(err);
       }
-      console.log('Logout successful, redirecting to login');
+      
+      loggingService.logSessionEnd(sessionId, userId);
+      loggingService.info('Logout successful', {
+        userId,
+        sessionId
+      });
+      
       res.redirect('/users/login');
     });
   } catch (error) {
-    console.error('Logout error:', error);
+    loggingService.error('Logout error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+      sessionId: req.sessionID
+    });
     next(error);
   }
 };
@@ -205,12 +276,23 @@ exports.postUpdateEmail = async (req, res) => {
     req.session.user.email = email;
     req.session.save();
 
+    loggingService.info('Email updated successfully', {
+      userId: req.session.user.id,
+      oldEmail: req.session.user.email,
+      newEmail: email
+    });
+
     res.json({
       success: true,
       message: result.message,
     });
   } catch (error) {
-    console.error('Email update error:', error);
+    loggingService.error('Email update error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+      newEmail: req.body?.email
+    });
     res.status(500).json({
       success: false,
       error: 'Failed to update email',
@@ -256,12 +338,20 @@ exports.postUpdatePassword = async (req, res) => {
       });
     }
 
+    loggingService.info('Password updated successfully', {
+      userId: req.session.user.id
+    });
+
     res.json({
       success: true,
       message: result.message,
     });
   } catch (error) {
-    console.error('Password update error:', error);
+    loggingService.error('Password update error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id
+    });
     res.status(500).json({
       success: false,
       error: 'Failed to update password',
