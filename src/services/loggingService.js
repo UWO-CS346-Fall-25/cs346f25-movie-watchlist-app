@@ -1,6 +1,6 @@
 /**
  * Application Logging Service
- * 
+ *
  * Centralized logging service that provides consistent logging
  * across the entire application with structured formats
  */
@@ -18,7 +18,7 @@ class LoggingService {
       userId,
       email: email.replace(/(.{2}).*@(.*)/, '$1***@$2'), // Partially mask email
       action,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -27,7 +27,7 @@ class LoggingService {
       email: email ? email.replace(/(.{2}).*@(.*)/, '$1***@$2') : 'unknown',
       reason,
       action,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -35,7 +35,7 @@ class LoggingService {
     this.logger.info(`Authentication Attempt: ${action}`, {
       email: email.replace(/(.{2}).*@(.*)/, '$1***@$2'),
       action,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -46,7 +46,7 @@ class LoggingService {
       table,
       userId,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -57,19 +57,25 @@ class LoggingService {
       userId,
       error: error.message,
       stack: error.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   // API operation logging
-  logApiCall(endpoint, method, userId = null, responseTime = null, status = null) {
+  logApiCall(
+    endpoint,
+    method,
+    userId = null,
+    responseTime = null,
+    status = null
+  ) {
     this.logger.info(`API Call: ${method} ${endpoint}`, {
       endpoint,
       method,
       userId,
       responseTime,
       status,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -80,7 +86,7 @@ class LoggingService {
       userId,
       error: error.message,
       stack: error.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -91,7 +97,7 @@ class LoggingService {
       movieId: movieData.id,
       movieTitle: movieData.title,
       userId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -100,7 +106,7 @@ class LoggingService {
       action,
       userId,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -110,7 +116,7 @@ class LoggingService {
       event,
       userId,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -119,7 +125,7 @@ class LoggingService {
       activity,
       userId,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -128,7 +134,7 @@ class LoggingService {
     this.logger.info('Session Started', {
       sessionId: sessionId.substring(0, 8) + '...',
       userId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -137,7 +143,7 @@ class LoggingService {
       sessionId: sessionId.substring(0, 8) + '...',
       userId,
       reason,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -147,19 +153,19 @@ class LoggingService {
       message: error.message,
       stack: error.stack,
       context,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   // Performance logging
   logPerformance(operation, duration, details = {}) {
     const level = duration > 1000 ? 'warn' : 'info'; // Warn if operation takes more than 1 second
-    
+
     this.logger[level](`Performance: ${operation}`, {
       operation,
       duration: `${duration}ms`,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -169,14 +175,14 @@ class LoggingService {
       port,
       environment,
       nodeVersion: process.version,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   logShutdown(reason = 'unknown') {
     this.logger.info('Application Shutdown', {
       reason,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 

@@ -34,7 +34,7 @@ exports.postRegister = async (req, res, next) => {
     loggingService.info('User registration attempt', {
       email: email,
       userAgent: req.get('User-Agent'),
-      ip: req.ip
+      ip: req.ip,
     });
 
     // Validate input
@@ -62,7 +62,7 @@ exports.postRegister = async (req, res, next) => {
         email: email,
         error: result.error,
         userAgent: req.get('User-Agent'),
-        ip: req.ip
+        ip: req.ip,
       });
       return res.render('register', {
         title: 'Register',
@@ -75,9 +75,9 @@ exports.postRegister = async (req, res, next) => {
     loggingService.info('User registration successful', {
       email: email,
       userAgent: req.get('User-Agent'),
-      ip: req.ip
+      ip: req.ip,
     });
-    
+
     res.render('login', {
       title: 'Login',
       success: result.message,
@@ -90,7 +90,7 @@ exports.postRegister = async (req, res, next) => {
       stack: error.stack,
       email: req.body?.email,
       userAgent: req.get('User-Agent'),
-      ip: req.ip
+      ip: req.ip,
     });
     next(error);
   }
@@ -121,7 +121,7 @@ exports.postLogin = async (req, res, next) => {
       email: email,
       userAgent: req.get('User-Agent'),
       ip: req.ip,
-      sessionId: req.sessionID
+      sessionId: req.sessionID,
     });
 
     // Validate input
@@ -169,13 +169,13 @@ exports.postLogin = async (req, res, next) => {
       if (err) {
         loggingService.error('Session save error', {
           error: err.message,
-          userId: result.user.id
+          userId: result.user.id,
         });
         return next(err);
       }
       loggingService.info('Login successful', {
         userId: result.user.id,
-        sessionId: req.sessionID
+        sessionId: req.sessionID,
       });
       res.redirect('/');
     });
@@ -184,7 +184,7 @@ exports.postLogin = async (req, res, next) => {
       error: error.message,
       stack: error.stack,
       email: req.body?.email,
-      sessionId: req.sessionID
+      sessionId: req.sessionID,
     });
     next(error);
   }
@@ -203,7 +203,7 @@ exports.postLogout = async (req, res, next) => {
       userId,
       sessionId,
       userAgent: req.get('User-Agent'),
-      ip: req.ip
+      ip: req.ip,
     });
 
     // Logout from Supabase Auth
@@ -213,7 +213,7 @@ exports.postLogout = async (req, res, next) => {
       loggingService.warn('Supabase logout error', {
         error: result.error,
         userId,
-        sessionId
+        sessionId,
       });
       // Continue with session destruction even if Supabase logout fails
     }
@@ -224,17 +224,17 @@ exports.postLogout = async (req, res, next) => {
         loggingService.error('Error destroying session', {
           error: err.message,
           userId,
-          sessionId
+          sessionId,
         });
         return next(err);
       }
-      
+
       loggingService.logSessionEnd(sessionId, userId);
       loggingService.info('Logout successful', {
         userId,
-        sessionId
+        sessionId,
       });
-      
+
       res.redirect('/users/login');
     });
   } catch (error) {
@@ -242,7 +242,7 @@ exports.postLogout = async (req, res, next) => {
       error: error.message,
       stack: error.stack,
       userId: req.session?.user?.id,
-      sessionId: req.sessionID
+      sessionId: req.sessionID,
     });
     next(error);
   }
@@ -279,7 +279,7 @@ exports.postUpdateEmail = async (req, res) => {
     loggingService.info('Email updated successfully', {
       userId: req.session.user.id,
       oldEmail: req.session.user.email,
-      newEmail: email
+      newEmail: email,
     });
 
     res.json({
@@ -291,7 +291,7 @@ exports.postUpdateEmail = async (req, res) => {
       error: error.message,
       stack: error.stack,
       userId: req.session?.user?.id,
-      newEmail: req.body?.email
+      newEmail: req.body?.email,
     });
     res.status(500).json({
       success: false,
@@ -339,7 +339,7 @@ exports.postUpdatePassword = async (req, res) => {
     }
 
     loggingService.info('Password updated successfully', {
-      userId: req.session.user.id
+      userId: req.session.user.id,
     });
 
     res.json({
@@ -350,7 +350,7 @@ exports.postUpdatePassword = async (req, res) => {
     loggingService.error('Password update error', {
       error: error.message,
       stack: error.stack,
-      userId: req.session?.user?.id
+      userId: req.session?.user?.id,
     });
     res.status(500).json({
       success: false,

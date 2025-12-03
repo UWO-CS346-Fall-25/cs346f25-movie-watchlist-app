@@ -21,13 +21,13 @@ exports.getMovies = async (req, res) => {
   try {
     const userId = getUserId(req);
     const movies = await movieModel.getAllWatchlistMovies(userId);
-    
+
     loggingService.logDatabaseOperation('Get watchlist movies', {
       userId,
       movieCount: movies.length,
-      operation: 'READ'
+      operation: 'READ',
     });
-    
+
     res.json({
       success: true,
       movies: movies,
@@ -36,7 +36,7 @@ exports.getMovies = async (req, res) => {
     loggingService.error('Error fetching movies', {
       error: error.message,
       stack: error.stack,
-      userId: getUserId(req)
+      userId: getUserId(req),
     });
     res.status(500).json({
       success: false,
@@ -50,13 +50,13 @@ exports.getWatchedMovies = async (req, res) => {
   try {
     const userId = getUserId(req);
     const movies = await movieModel.getAllWatchedMovies(userId);
-    
+
     loggingService.logDatabaseOperation('Get watched movies', {
       userId,
       movieCount: movies.length,
-      operation: 'READ'
+      operation: 'READ',
     });
-    
+
     res.json({
       success: true,
       movies: movies,
@@ -65,7 +65,7 @@ exports.getWatchedMovies = async (req, res) => {
     loggingService.error('Error fetching watched movies', {
       error: error.message,
       stack: error.stack,
-      userId: getUserId(req)
+      userId: getUserId(req),
     });
     res.status(500).json({
       success: false,
@@ -77,7 +77,7 @@ exports.getWatchedMovies = async (req, res) => {
 // Add a new movie
 exports.addMovie = async (req, res) => {
   const startTime = Date.now();
-  
+
   try {
     const {
       title,
@@ -94,8 +94,12 @@ exports.addMovie = async (req, res) => {
     loggingService.logApiCall('/api/movies', 'POST', userId);
 
     if (!title || !genre || !desireScale) {
-      loggingService.logApiError('/api/movies', 'POST', 
-        new Error('Missing required fields'), userId);
+      loggingService.logApiError(
+        '/api/movies',
+        'POST',
+        new Error('Missing required fields'),
+        userId
+      );
       return res
         .status(400)
         .json({ success: false, error: 'Missing required fields' });
@@ -104,7 +108,7 @@ exports.addMovie = async (req, res) => {
     if (!userId) {
       loggingService.logSecurityEvent('Unauthenticated API access', null, {
         endpoint: '/api/movies',
-        method: 'POST'
+        method: 'POST',
       });
       return res.status(401).json({
         success: false,
@@ -128,8 +132,12 @@ exports.addMovie = async (req, res) => {
     const newMovie = await movieModel.addMovie(movieData, userId);
 
     if (!newMovie) {
-      loggingService.logDatabaseError('INSERT', 'movies', 
-        new Error('Movie creation failed'), userId);
+      loggingService.logDatabaseError(
+        'INSERT',
+        'movies',
+        new Error('Movie creation failed'),
+        userId
+      );
       return res.status(500).json({
         success: false,
         error: 'Failed to add movie',
@@ -140,13 +148,13 @@ exports.addMovie = async (req, res) => {
     loggingService.logMovieAction('ADD_MOVIE', newMovie, userId);
     loggingService.logDatabaseOperation('INSERT', 'movies', userId, {
       movieId: newMovie.id,
-      title: newMovie.title
+      title: newMovie.title,
     });
-    
+
     const duration = Date.now() - startTime;
     loggingService.logPerformance('addMovie', duration, {
       userId,
-      movieTitle: title
+      movieTitle: title,
     });
 
     res.json({ success: true, movie: newMovie });
@@ -181,12 +189,15 @@ exports.markAsWatched = async (req, res) => {
         userId
       );
       if (!updateSuccess) {
-        loggingService.warn('Failed to update review/rating, but movie was marked as watched', {
-          movieId,
-          userId,
-          rating,
-          review: review ? 'provided' : 'not provided'
-        });
+        loggingService.warn(
+          'Failed to update review/rating, but movie was marked as watched',
+          {
+            movieId,
+            userId,
+            rating,
+            review: review ? 'provided' : 'not provided',
+          }
+        );
       }
     }
 
@@ -195,7 +206,7 @@ exports.markAsWatched = async (req, res) => {
       movieId,
       operation: 'UPDATE',
       hasRating: !!rating,
-      hasReview: !!review
+      hasReview: !!review,
     });
 
     res.json({ success: true, watchedMovie });
@@ -204,7 +215,7 @@ exports.markAsWatched = async (req, res) => {
       error: error.message,
       stack: error.stack,
       movieId: req.params.id,
-      userId: getUserId(req)
+      userId: getUserId(req),
     });
     res.status(500).json({
       success: false,
@@ -227,7 +238,7 @@ exports.removeMovie = async (req, res) => {
     loggingService.logDatabaseOperation('Movie removed from watchlist', {
       userId,
       movieId,
-      operation: 'DELETE'
+      operation: 'DELETE',
     });
 
     res.json({ success: true });
@@ -236,7 +247,7 @@ exports.removeMovie = async (req, res) => {
       error: error.message,
       stack: error.stack,
       movieId: req.params.id,
-      userId: getUserId(req)
+      userId: getUserId(req),
     });
     res.status(500).json({
       success: false,
@@ -267,7 +278,7 @@ exports.removeWatchedMovie = async (req, res) => {
     loggingService.logDatabaseOperation('Watched movie removed', {
       userId,
       movieId,
-      operation: 'DELETE'
+      operation: 'DELETE',
     });
 
     res.json({ success: true });
@@ -276,7 +287,7 @@ exports.removeWatchedMovie = async (req, res) => {
       error: error.message,
       stack: error.stack,
       movieId: req.params.id,
-      userId: getUserId(req)
+      userId: getUserId(req),
     });
     res.status(500).json({
       success: false,
@@ -308,7 +319,7 @@ exports.updateReview = async (req, res) => {
       movieId,
       operation: 'UPDATE',
       hasReview: !!review,
-      hasRating: !!rating
+      hasRating: !!rating,
     });
 
     res.json({ success: true });
@@ -319,7 +330,7 @@ exports.updateReview = async (req, res) => {
       movieId: req.params.id,
       userId: getUserId(req),
       review: req.body?.review ? 'provided' : 'not provided',
-      rating: req.body?.rating
+      rating: req.body?.rating,
     });
     res.status(500).json({
       success: false,

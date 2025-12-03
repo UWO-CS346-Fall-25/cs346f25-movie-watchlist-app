@@ -5,7 +5,7 @@ A full-stack web application that allows users to track movies they want to watc
 ## Features
 
 - 🎬 **Movie Management** - Add, remove, and track movies you want to watch
-- ⭐ **Ratings & Reviews** - Rate and review movies you've watched  
+- ⭐ **Ratings & Reviews** - Rate and review movies you've watched
 - 🔍 **Movie Search** - Integration with TMDB API for real-time movie search
 - 🔍 **Powerful Filtering** - Find movies by name, genre, rating, or date
 - 🌓 **Theme Switching** - Toggle between light and dark mode
@@ -17,11 +17,13 @@ A full-stack web application that allows users to track movies they want to watc
 ## Logging System (Deliverable 7)
 
 ### Overview
+
 The application implements a comprehensive logging system using Winston and Morgan for application monitoring, debugging, and security auditing.
 
 ### Components
 
 **Winston Logger (`src/config/logger.js`)**
+
 - Multi-transport logging (file + console)
 - JSON formatting for structured logs
 - Log rotation with file size limits
@@ -29,21 +31,24 @@ The application implements a comprehensive logging system using Winston and Morg
 - Separate files for different log types
 
 **Morgan HTTP Logger (`src/middleware/httpLogger.js`)**
+
 - HTTP request/response logging
 - Custom tokens for user-id and session-id
 - Colored output for development
 - Integration with Winston logger stream
 
 **Centralized Logging Service (`src/services/loggingService.js`)**
+
 - Specialized methods for different application areas:
   - Authentication events
-  - Database operations  
+  - Database operations
   - API calls
   - Security events
   - Performance monitoring
   - Session lifecycle
 
 ### Log Files Structure
+
 ```
 logs/
 ├── combined.log     # All log levels combined
@@ -54,6 +59,7 @@ logs/
 ```
 
 ### Integration Points
+
 - **Application Lifecycle**: Server startup/shutdown, graceful shutdown handling
 - **HTTP Middleware**: All incoming requests logged with response times and status codes
 - **Authentication Flow**: Login/logout attempts, session creation/destruction
@@ -62,6 +68,7 @@ logs/
 - **Security Events**: Failed authentication attempts, unauthorized access
 
 ### Log Format Example
+
 ```json
 {
   "timestamp": "2025-12-03 17:44:31:4431",
@@ -77,14 +84,14 @@ logs/
 ## External API Integration
 
 ### TMDB (The Movie Database) API
+
 - **Base URL:** `https://api.themoviedb.org/3`
 - **Endpoints:** Search movies, popular movies, movie details
 - **Security:** API key stored in environment variables
-- **Routes:** 
+- **Routes:**
   - `GET /search` - Movie search page
   - `GET /api/search/movies` - Search API endpoint
   - `GET /api/movies/popular` - Popular movies endpoint
-
 
 ## Technology Stack
 
@@ -101,7 +108,7 @@ logs/
 ```text
 ├── src/
 │   ├── server.js              # Server entry point with logging
-│   ├── app.js                 # Express app configuration  
+│   ├── app.js                 # Express app configuration
 │   ├── config/                # Configuration files
 │   │   ├── supabase.js        # Supabase client setup
 │   │   └── logger.js          # Winston logger configuration
@@ -173,7 +180,7 @@ logs/
 
    Logs are automatically created in the `logs/` directory:
    - `combined.log` - All application logs
-   - `error.log` - Error-level logs only  
+   - `error.log` - Error-level logs only
    - `http.log` - HTTP request/response logs
 
 6. **Open your browser**
@@ -183,7 +190,7 @@ logs/
 ## Available Scripts
 
 - `npm start` - Start production server
-- `npm run dev` - Start development server with auto-reload  
+- `npm run dev` - Start development server with auto-reload
 - `npm run lint` - Check code for linting errors
 - `npm run format` - Format code with Prettier
 - `npm run migrate` - Run database migrations
@@ -222,7 +229,7 @@ Required environment variables (see `.env.example`):
 SUPABASE_URL=your_supabase_project_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# TMDB API Configuration  
+# TMDB API Configuration
 TMDB_API_KEY=your_tmdb_api_key
 
 # Session Configuration

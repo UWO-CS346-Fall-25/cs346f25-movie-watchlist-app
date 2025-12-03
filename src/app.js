@@ -113,17 +113,21 @@ app.use((err, req, res, _next) => {
     url: req.url,
     method: req.method,
     userId: req.session?.user?.id,
-    userAgent: req.get('User-Agent')
+    userAgent: req.get('User-Agent'),
   });
 
   // Handle csurf errors
   if (err.code === 'EBADCSRFTOKEN') {
-    loggingService.logSecurityEvent('CSRF Token Invalid', req.session?.user?.id, {
-      url: req.url,
-      method: req.method,
-      userAgent: req.get('User-Agent')
-    });
-    
+    loggingService.logSecurityEvent(
+      'CSRF Token Invalid',
+      req.session?.user?.id,
+      {
+        url: req.url,
+        method: req.method,
+        userAgent: req.get('User-Agent'),
+      }
+    );
+
     res.status(403).render('error', {
       title: '403 - Forbidden',
       message: 'Invalid security token. Please try again.',

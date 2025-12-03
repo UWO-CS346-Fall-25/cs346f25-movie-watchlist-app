@@ -69,7 +69,7 @@ async function getUserId(req = null) {
   } catch (error) {
     loggingService.error('Error getting user ID', {
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
     throw error;
   }

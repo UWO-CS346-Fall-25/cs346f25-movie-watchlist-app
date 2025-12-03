@@ -19,7 +19,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const server = app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
   console.log(`Environment: ${NODE_ENV}`);
-  
+
   // Log application startup
   loggingService.logStartup(PORT, NODE_ENV);
 });
@@ -27,12 +27,12 @@ const server = app.listen(PORT, () => {
 // Graceful shutdown handling
 const gracefulShutdown = (signal) => {
   loggingService.info(`Received ${signal}. Starting graceful shutdown...`);
-  
+
   server.close(() => {
     loggingService.logShutdown(`Received ${signal}`);
     process.exit(0);
   });
-  
+
   // Force shutdown after 10 seconds
   setTimeout(() => {
     loggingService.error('Forced shutdown due to timeout');
@@ -48,9 +48,9 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('unhandledRejection', (err) => {
   loggingService.error('Unhandled Promise Rejection', {
     error: err.message,
-    stack: err.stack
+    stack: err.stack,
   });
-  
+
   if (NODE_ENV === 'production') {
     gracefulShutdown('unhandledRejection');
   }
@@ -59,9 +59,9 @@ process.on('unhandledRejection', (err) => {
 process.on('uncaughtException', (err) => {
   loggingService.error('Uncaught Exception', {
     error: err.message,
-    stack: err.stack
+    stack: err.stack,
   });
-  
+
   if (NODE_ENV === 'production') {
     process.exit(1);
   }
