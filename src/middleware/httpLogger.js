@@ -11,7 +11,9 @@ const logger = require('../config/logger');
 // Custom token for user ID (if available in session)
 morgan.token('user-id', (req) => {
   // Check if this is a static asset request
-  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+  if (
+    req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)
+  ) {
     return 'static-asset';
   }
   return req.session?.user?.id || 'anonymous';
@@ -20,7 +22,9 @@ morgan.token('user-id', (req) => {
 // Custom token for session ID
 morgan.token('session-id', (req) => {
   // Check if this is a static asset request
-  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+  if (
+    req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)
+  ) {
     return 'static';
   }
   return req.sessionID ? req.sessionID.substring(0, 8) + '...' : 'no-session';
@@ -28,7 +32,9 @@ morgan.token('session-id', (req) => {
 
 // Custom token for request type
 morgan.token('request-type', (req) => {
-  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+  if (
+    req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)
+  ) {
     return '🎨 STATIC';
   }
   if (req.url.startsWith('/api/')) {
@@ -54,7 +60,9 @@ morgan.token('content-size', (req, res) => {
 morgan.token('short-user-agent', (req) => {
   const userAgent = req.get('User-Agent') || '';
   // For static assets, just show browser name
-  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+  if (
+    req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)
+  ) {
     if (userAgent.includes('Chrome')) return 'Chrome';
     if (userAgent.includes('Firefox')) return 'Firefox';
     if (userAgent.includes('Safari')) return 'Safari';
