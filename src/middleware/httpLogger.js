@@ -10,12 +10,59 @@ const logger = require('../config/logger');
 
 // Custom token for user ID (if available in session)
 morgan.token('user-id', (req) => {
+  // Check if this is a static asset request
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+    return 'static-asset';
+  }
   return req.session?.user?.id || 'anonymous';
 });
 
 // Custom token for session ID
 morgan.token('session-id', (req) => {
+  // Check if this is a static asset request
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+    return 'static';
+  }
   return req.sessionID ? req.sessionID.substring(0, 8) + '...' : 'no-session';
+});
+
+// Custom token for request type
+morgan.token('request-type', (req) => {
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+    return '🎨 STATIC';
+  }
+  if (req.url.startsWith('/api/')) {
+    return '🔗 API';
+  }
+  return '📄 PAGE';
+});
+
+// Custom token for content size with proper handling of missing values
+morgan.token('content-size', (req, res) => {
+  const length = res.getHeader('content-length');
+  if (length) {
+    return `${length} bytes`;
+  }
+  // For 304 Not Modified responses, there's typically no content-length
+  if (res.statusCode === 304) {
+    return 'cached';
+  }
+  return 'unknown';
+});
+
+// Custom token for shortened user-agent (for static assets)
+morgan.token('short-user-agent', (req) => {
+  const userAgent = req.get('User-Agent') || '';
+  // For static assets, just show browser name
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+    if (userAgent.includes('Chrome')) return 'Chrome';
+    if (userAgent.includes('Firefox')) return 'Firefox';
+    if (userAgent.includes('Safari')) return 'Safari';
+    if (userAgent.includes('Edge')) return 'Edge';
+    return 'Browser';
+  }
+  // For regular requests, show full user-agent
+  return userAgent;
 });
 
 // Custom token for response time in different colors based on speed
@@ -40,13 +87,13 @@ morgan.token('colored-status', (req, res) => {
 
 // Development format with colors and detailed information
 const developmentFormat = [
-  '📝 :method :url',
+  ':request-type :method :url',
   '👤 User: :user-id',
   '🔑 Session: :session-id',
   '📊 Status: :colored-status',
   '⏱️  Time: :colored-response-time ms',
-  '📦 Size: :res[content-length] bytes',
-  '🔍 User-Agent: :user-agent',
+  '📦 Size: :content-size',
+  '🔍 UA: :short-user-agent',
 ].join(' | ');
 
 // Production format (more concise, structured)
