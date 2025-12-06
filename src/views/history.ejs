@@ -78,25 +78,36 @@
         <% if (watchedMovies && watchedMovies.length > 0) { %>
           <% watchedMovies.forEach(function(movie) { %>
             <div class="movie-card" data-id="<%= movie.id %>">
-              <% if (movie.posterPath) { %>
               <div class="movie-poster-container">
-                <img
-                  src="https://image.tmdb.org/t/p/w300<%= movie.posterPath %>"
-                  alt="<%= movie.title %> poster"
-                  class="movie-poster-img"
-                />
+                <% if (movie.posterPath && movie.posterPath.trim() !== '') { %>
+                  <img
+                    src="https://image.tmdb.org/t/p/w300<%= movie.posterPath %>"
+                    alt="<%= movie.title %> poster"
+                    class="movie-poster-img"
+                  />
+                <% } else { %>
+                  <div class="movie-poster-placeholder">
+                    <div class="placeholder-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/>
+                      </svg>
+                    </div>
+                    <div class="placeholder-title"><%= movie.title %></div>
+                    <div class="placeholder-subtitle">Custom Movie</div>
+                  </div>
+                <% } %>
               </div>
-              <% } %>
-              <div class="movie-header">
-                <h3 class="movie-title"><%= movie.title %></h3>
-                <span class="movie-genre"><%= movie.genre %></span>
-              </div>
-              <% if (movie.overview) { %>
-              <div class="movie-overview">
-                <%= movie.overview.substring(0, 120) %><%= movie.overview.length > 120 ? '...' : '' %>
-              </div>
-              <% } %>
-              <div class="movie-details">
+              <div class="movie-content">
+                <% if (movie.overview) { %>
+                <div class="movie-overview">
+                  <%= movie.overview.substring(0, 120) %><%= movie.overview.length > 120 ? '...' : '' %>
+                </div>
+                <% } %>
+                <div class="movie-header">
+                  <h3 class="movie-title"><%= movie.title %></h3>
+                  <span class="movie-genre"><%= movie.genre %></span>
+                </div>
+                <div class="movie-details">
                 <div class="movie-rating">
                   <span>Rating:</span>
                   <div class="stars">
@@ -110,9 +121,10 @@
                   <div class="movie-review"><strong>Review:</strong> <%= movie.review %></div>
                 <% } %>
               </div>
-              <div class="movie-actions">
-                <button class="btn-secondary edit-review-btn" data-movie-id="<%= movie.id %>">Edit Review</button>
-                <button class="btn-danger remove-watched-btn" data-movie-id="<%= movie.id %>">Remove</button>
+                <div class="movie-actions">
+                  <button class="btn-secondary edit-review-btn" data-movie-id="<%= movie.id %>">Edit Review</button>
+                  <button class="btn-danger remove-watched-btn" data-movie-id="<%= movie.id %>">Remove</button>
+                </div>
               </div>
             </div>
           <% }); %>

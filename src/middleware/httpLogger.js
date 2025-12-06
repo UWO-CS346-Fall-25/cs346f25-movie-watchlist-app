@@ -35,12 +35,12 @@ morgan.token('request-type', (req) => {
   if (
     req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)
   ) {
-    return '🎨 STATIC';
+    return 'STATIC';
   }
   if (req.url.startsWith('/api/')) {
-    return '🔗 API';
+    return 'API';
   }
-  return '📄 PAGE';
+  return 'PAGE';
 });
 
 // Custom token for content size with proper handling of missing values
@@ -96,12 +96,12 @@ morgan.token('colored-status', (req, res) => {
 // Development format with colors and detailed information
 const developmentFormat = [
   ':request-type :method :url',
-  '👤 User: :user-id',
-  '🔑 Session: :session-id',
-  '📊 Status: :colored-status',
-  '⏱️  Time: :colored-response-time ms',
-  '📦 Size: :content-size',
-  '🔍 UA: :short-user-agent',
+  'User: :user-id',
+  'Session: :session-id',
+  'Status: :colored-status',
+  'Time: :colored-response-time ms',
+  'Size: :content-size',
+  'UA: :short-user-agent',
 ].join(' | ');
 
 // Production format (more concise, structured)

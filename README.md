@@ -166,7 +166,6 @@ logs/
 
    ```bash
    cp .env.example .env
-   # Edit .env with your Supabase and TMDB API credentials
    ```
 
 4. **Start the application**

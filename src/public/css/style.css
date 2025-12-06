@@ -520,6 +520,9 @@ main {
   border: 1px solid var(--border-light);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
 }
 
 .movie-card::before {
@@ -538,11 +541,18 @@ main {
   border-color: var(--primary-color);
 }
 
+.movie-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .movie-header {
   display: flex;
   justify-content: space-between;
   align-items: start;
   margin-bottom: 1rem;
+  margin-top: auto;
 }
 
 .movie-title {
@@ -566,6 +576,10 @@ main {
 
 .movie-details {
   margin: 1rem 0;
+}
+
+.movie-actions {
+  margin-top: 1rem;
 }
 
 .desire-scale,
@@ -1064,13 +1078,39 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
   background: linear-gradient(
     135deg,
     var(--primary-color) 0%,
-    var(--secondary-color) 100%
+    var(--secondary-color) 50%,
+    var(--accent-color) 100%
   );
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
+  position: relative;
+  overflow: hidden;
+}
+
+.search-result-poster.placeholder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(255, 255, 255, 0.1) 4px,
+    rgba(255, 255, 255, 0.1) 6px
+  );
+}
+
+.placeholder-search-icon {
+  width: 32px;
+  height: 32px;
+  z-index: 1;
+  position: relative;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .search-result-info {
@@ -1215,9 +1255,10 @@ main {
 .movie-poster-container {
   width: 100%;
   max-width: 200px;
-  margin: 0 auto 15px;
+  margin: 0 auto 24px;
   border-radius: var(--radius);
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .movie-poster-img {
@@ -1228,10 +1269,152 @@ main {
   object-fit: cover;
 }
 
+/* Placeholder Poster Styles */
+.movie-poster-placeholder {
+  width: 100%;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color),
+    var(--accent-color)
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.movie-poster-placeholder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.1) 8px,
+      rgba(255, 255, 255, 0.1) 12px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.05) 8px,
+      rgba(255, 255, 255, 0.05) 12px
+    );
+}
+
+.placeholder-icon {
+  width: 48px;
+  height: 48px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 12px;
+  z-index: 1;
+  position: relative;
+}
+
+.placeholder-icon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.placeholder-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  margin-bottom: 4px;
+  z-index: 1;
+  position: relative;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+  padding: 0 12px;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.placeholder-subtitle {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  font-weight: 500;
+  z-index: 1;
+  position: relative;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+}
+
+/* Modal Poster Placeholder */
+.modal-poster-placeholder {
+  width: 100%;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color),
+    var(--accent-color)
+  );
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-poster-placeholder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.08) 10px,
+      rgba(255, 255, 255, 0.08) 14px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.04) 10px,
+      rgba(255, 255, 255, 0.04) 14px
+    );
+}
+
+.modal-poster-placeholder .placeholder-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+}
+
+.modal-poster-placeholder .placeholder-title {
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+}
+
+.modal-poster-placeholder .placeholder-subtitle {
+  font-size: 0.9rem;
+}
+
 .movie-overview {
   font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.4;
-  margin-bottom: 12px;
-  padding: 0 15px;
+  margin-bottom: 16px;
+  padding: 0;
+  flex-grow: 1;
 }
