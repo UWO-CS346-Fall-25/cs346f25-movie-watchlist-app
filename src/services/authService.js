@@ -146,7 +146,7 @@ class AuthService {
   }
 
   /**
-   * Get user by ID
+   * Get user by ID (Uses DB Client)
    * @param {string} userId - User ID
    * @returns {Promise<Object>} User data
    */
@@ -179,10 +179,29 @@ class AuthService {
   /**
    * Update user email
    * @param {string} newEmail - New email address
+   * @param {string} accessToken - REQUIRED: The user's access token to prove identity
    * @returns {Promise<Object>} Update result
    */
-  async updateEmail(newEmail) {
+  async updateEmail(newEmail, accessToken) {
     try {
+      if (!accessToken) {
+        throw new Error('Authentication required to update email');
+      }
+
+      // 1. Set the session on the client so it knows who is making the request
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken, // Often required by the method signature
+      });
+
+      if (sessionError) {
+        console.warn(
+          'Session set warning (might be expired, trying anyway):',
+          sessionError.message
+        );
+      }
+
+      // 2. Perform the update
       const { data, error } = await supabase.auth.updateUser({
         email: newEmail,
       });
@@ -209,10 +228,29 @@ class AuthService {
   /**
    * Update user password
    * @param {string} newPassword - New password
+   * @param {string} accessToken - REQUIRED: The user's access token
    * @returns {Promise<Object>} Update result
    */
-  async updatePassword(newPassword) {
+  async updatePassword(newPassword, accessToken) {
     try {
+      if (!accessToken) {
+        throw new Error('Authentication required to update password');
+      }
+
+      // 1. Set the session
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken,
+      });
+
+      if (sessionError) {
+        console.warn(
+          'Session set warning (might be expired, trying anyway):',
+          sessionError.message
+        );
+      }
+
+      // 2. Perform the update
       const { data, error } = await supabase.auth.updateUser({
         password: newPassword,
       });

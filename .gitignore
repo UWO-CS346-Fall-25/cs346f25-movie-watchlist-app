@@ -1,3 +1,9 @@
+# Ignore all files inside the uploads folder...
+src/public/uploads/*
+
+# ...EXCEPT this one specific file
+!src/public/uploads/.gitkeep
+
 # Logs
 logs
 *.log

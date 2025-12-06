@@ -1314,6 +1314,9 @@ async function handleEmailUpdate(e) {
   e.preventDefault();
 
   const emailInput = document.getElementById('email');
+  // 1. Get the CSRF token from the hidden input field
+  const csrfToken = document.querySelector('input[name="_csrf"]').value;
+
   const newEmail = emailInput.value.trim();
 
   if (!newEmail) {
@@ -1333,6 +1336,8 @@ async function handleEmailUpdate(e) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // 2. Include the token in the headers
+        'CSRF-Token': csrfToken,
       },
       body: JSON.stringify({ email: newEmail }),
     });
@@ -1342,7 +1347,7 @@ async function handleEmailUpdate(e) {
     if (result.success) {
       showNotification(result.message, 'success');
     } else {
-      showNotification(result.error, 'error');
+      showNotification(result.error || 'Failed to update email', 'error');
     }
   } catch (error) {
     console.error('Error updating email:', error);
@@ -1356,6 +1361,8 @@ async function handlePasswordUpdate(e) {
 
   const newPasswordInput = document.getElementById('newPassword');
   const confirmPasswordInput = document.getElementById('confirmPassword');
+  // 1. Get the CSRF token here too
+  const csrfToken = document.querySelector('input[name="_csrf"]').value;
 
   const newPassword = newPasswordInput.value;
   const confirmPassword = confirmPasswordInput.value;
@@ -1380,6 +1387,8 @@ async function handlePasswordUpdate(e) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // 2. Include the token in the headers
+        'CSRF-Token': csrfToken,
       },
       body: JSON.stringify({
         password: newPassword,
@@ -1390,12 +1399,12 @@ async function handlePasswordUpdate(e) {
     const result = await response.json();
 
     if (result.success) {
-      // Clear the form
+      // Clear the form on success
       newPasswordInput.value = '';
       confirmPasswordInput.value = '';
       showNotification(result.message, 'success');
     } else {
-      showNotification(result.error, 'error');
+      showNotification(result.error || 'Failed to update password', 'error');
     }
   } catch (error) {
     console.error('Error updating password:', error);

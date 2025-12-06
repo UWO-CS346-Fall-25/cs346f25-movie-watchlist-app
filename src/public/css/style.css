@@ -1418,3 +1418,35 @@ main {
   padding: 0;
   flex-grow: 1;
 }
+
+/* Avatar / Profile Picture Styles */
+.profile-picture {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.avatar-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin-bottom: 1rem;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* This cuts off edges instead of squishing */
+  border-radius: 50%; /* This makes it a circle */
+  border: 4px solid var(--surface-elevated);
+  box-shadow: var(--shadow-lg);
+  background-color: var(--border-light);
+}
+
+.avatar-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}

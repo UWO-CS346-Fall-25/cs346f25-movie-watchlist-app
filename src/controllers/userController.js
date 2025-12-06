@@ -10,6 +10,7 @@
 
 const authService = require('../services/authService');
 const loggingService = require('../services/loggingService');
+const User = require('../models/User'); // Required for profile updates
 
 /**
  * Display registration form.
@@ -62,7 +63,7 @@ exports.postRegister = async (req, res, next) => {
       });
     }
 
-    // Register with Supabase Auth (no username)
+    // Register with Supabase Auth
     const result = await authService.register(email, password);
 
     if (!result.success) {
@@ -79,7 +80,7 @@ exports.postRegister = async (req, res, next) => {
       });
     }
 
-    // Success - redirect to login with success message
+    // Success - redirect to login
     loggingService.info('User registration successful', {
       email: email,
       userAgent: req.get('User-Agent'),
@@ -162,10 +163,14 @@ exports.postLogin = async (req, res, next) => {
       });
     }
 
+    // Fetch the profile image from the public table to store in session
+    const userProfile = await User.findById(result.user.id);
+
     // Store user session
     req.session.user = {
       id: result.user.id,
       email: result.user.email,
+      profile_image_url: userProfile ? userProfile.profile_image_url : null,
     };
 
     req.session.supabaseSession = {
@@ -235,7 +240,6 @@ exports.postLogout = async (req, res, next) => {
         userId,
         sessionId,
       });
-      // Continue with session destruction even if Supabase logout fails
     }
 
     // Destroy local session
@@ -270,30 +274,23 @@ exports.postLogout = async (req, res, next) => {
 
 /**
  * Updates the authenticated user's email address.
- *
- * @param {Object} req - Express request object
- * @param {string} req.body.email - The new email address
- * @param {Object} res - Express response object
- * @returns {Promise<void>} Sends JSON response with success/error status
  */
 exports.postUpdateEmail = async (req, res) => {
   try {
     const { email } = req.body;
+    const accessToken = req.session?.supabaseSession?.access_token;
 
     if (!email) {
-      return res.status(400).json({
-        success: false,
-        error: 'Email is required',
-      });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Email is required' });
     }
 
-    const result = await authService.updateEmail(email);
+    const result = await authService.updateEmail(email, accessToken);
 
     if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error,
-      });
+      loggingService.warn('Email update failed', { error: result.error });
+      return res.status(400).json({ success: false, error: result.error });
     }
 
     // Update session with new email
@@ -306,84 +303,110 @@ exports.postUpdateEmail = async (req, res) => {
       newEmail: email,
     });
 
-    res.json({
-      success: true,
-      message: result.message,
-    });
+    // CHANGED: Return JSON instead of redirect
+    res.json({ success: true, message: 'Email updated successfully' });
   } catch (error) {
     loggingService.error('Email update error', {
       error: error.message,
       stack: error.stack,
       userId: req.session?.user?.id,
-      newEmail: req.body?.email,
     });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update email',
-    });
+    res
+      .status(500)
+      .json({ success: false, error: 'Server error updating email' });
   }
 };
 
 /**
  * Updates the authenticated user's password.
- *
- * @param {Object} req - Express request object
- * @param {string} req.body.password - The new password
- * @param {string} req.body.confirmPassword - The password confirmation
- * @param {Object} res - Express response object
- * @returns {Promise<void>} Sends JSON response with success/error status
  */
 exports.postUpdatePassword = async (req, res) => {
   try {
     const { password, confirmPassword } = req.body;
+    const accessToken = req.session?.supabaseSession?.access_token;
 
     if (!password || !confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        error: 'Both password fields are required',
-      });
+      return res
+        .status(400)
+        .json({ success: false, error: 'All fields are required' });
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        error: 'Passwords do not match',
-      });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Passwords do not match' });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        error: 'Password must be at least 6 characters long',
-      });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Password must be 6+ characters' });
     }
 
-    const result = await authService.updatePassword(password);
+    const result = await authService.updatePassword(password, accessToken);
 
     if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error,
-      });
+      loggingService.warn('Password update failed', { error: result.error });
+      return res.status(400).json({ success: false, error: result.error });
     }
 
     loggingService.info('Password updated successfully', {
       userId: req.session.user.id,
     });
 
-    res.json({
-      success: true,
-      message: result.message,
-    });
+    // CHANGED: Return JSON instead of redirect
+    res.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     loggingService.error('Password update error', {
       error: error.message,
       stack: error.stack,
       userId: req.session?.user?.id,
     });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update password',
+    res
+      .status(500)
+      .json({ success: false, error: 'Server error updating password' });
+  }
+};
+
+/**
+ * Processes the avatar image upload.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Redirects to settings page
+ */
+exports.postUploadAvatar = async (req, res) => {
+  try {
+    const userId = req.session?.user?.id;
+    // CRITICAL: We retrieve the token here to pass it to the User model
+    // This allows the Supabase client to pass RLS checks
+    const accessToken = req.session?.supabaseSession?.access_token;
+
+    if (!req.file) {
+      return res.redirect('/settings');
+    }
+
+    // Path relative to 'public' folder so browser can see it
+    const imageUrl = '/uploads/' + req.file.filename;
+
+    // Update DB with the correct column name 'profile_image_url'
+    // We pass accessToken so Supabase allows the RLS update
+    await User.updateAvatar(userId, imageUrl, accessToken);
+
+    // Update Session immediately so the user sees the change without logging out
+    if (req.session.user) {
+      req.session.user.profile_image_url = imageUrl;
+    }
+
+    // Log success
+    loggingService.info('User updated profile picture', {
+      userId: userId,
+      filename: req.file.filename,
     });
+
+    res.redirect('/settings');
+  } catch (error) {
+    loggingService.error('Avatar upload error', { error: error.message });
+    res.redirect('/settings');
   }
 };
