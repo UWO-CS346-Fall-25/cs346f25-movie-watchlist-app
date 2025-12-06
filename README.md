@@ -49,7 +49,7 @@ The application implements a comprehensive logging system using Winston and Morg
 
 ### Log Files Structure
 
-```
+```text
 logs/
 ├── combined.log     # All log levels combined
 ├── error.log        # Error-level logs only
