@@ -15,8 +15,12 @@
 // const SomeModel = require('../models/SomeModel');
 
 /**
- * GET /
- * Display the home page
+ * Renders the Home page.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Renders the 'index' view
  */
 exports.getHome = async (req, res, next) => {
   try {
@@ -34,8 +38,12 @@ exports.getHome = async (req, res, next) => {
 };
 
 /**
- * GET /about
- * Display the about page
+ * Renders the About page.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Renders the 'about' view
  */
 exports.getAbout = async (req, res, next) => {
   try {

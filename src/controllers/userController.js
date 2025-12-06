@@ -12,8 +12,10 @@ const authService = require('../services/authService');
 const loggingService = require('../services/loggingService');
 
 /**
- * GET /users/register
- * Display registration form
+ * Display registration form.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
  */
 exports.getRegister = (req, res) => {
   res.render('register', {
@@ -24,8 +26,14 @@ exports.getRegister = (req, res) => {
 };
 
 /**
- * POST /users/register
- * Process registration form
+ * Processes user registration with Supabase Auth.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.body.email - The user's email address
+ * @param {string} req.body.password - The user's password (min 6 characters)
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Renders 'login' view on success, or 'register' view on failure
  */
 exports.postRegister = async (req, res, next) => {
   try {
@@ -97,8 +105,10 @@ exports.postRegister = async (req, res, next) => {
 };
 
 /**
- * GET /users/login
- * Display login form
+ * Display login form.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
  */
 exports.getLogin = (req, res) => {
   res.render('login', {
@@ -110,8 +120,14 @@ exports.getLogin = (req, res) => {
 };
 
 /**
- * POST /users/login
- * Process login form
+ * Authenticates user credentials and initializes the server session.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.body.email - The user's email
+ * @param {string} req.body.password - The user's password
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Redirects to Home ('/') on success, or renders 'login' on failure
  */
 exports.postLogin = async (req, res, next) => {
   try {
@@ -191,8 +207,12 @@ exports.postLogin = async (req, res, next) => {
 };
 
 /**
- * POST /users/logout
- * Logout user
+ * Destroys the user session and handles Supabase logout.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Redirects to the login page
  */
 exports.postLogout = async (req, res, next) => {
   try {
@@ -249,8 +269,12 @@ exports.postLogout = async (req, res, next) => {
 };
 
 /**
- * POST /users/update-email
- * Update user email
+ * Updates the authenticated user's email address.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.body.email - The new email address
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response with success/error status
  */
 exports.postUpdateEmail = async (req, res) => {
   try {
@@ -301,8 +325,13 @@ exports.postUpdateEmail = async (req, res) => {
 };
 
 /**
- * POST /users/update-password
- * Update user password
+ * Updates the authenticated user's password.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.body.password - The new password
+ * @param {string} req.body.confirmPassword - The password confirmation
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response with success/error status
  */
 exports.postUpdatePassword = async (req, res) => {
   try {

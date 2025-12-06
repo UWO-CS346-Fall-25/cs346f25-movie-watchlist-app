@@ -20,6 +20,16 @@ A full-stack web application that allows users to track movies they want to watc
 
 The application implements a comprehensive logging system using Winston and Morgan for application monitoring, debugging, and security auditing.
 
+## Changelog
+
+**\*Logging:** Implemented a standardized logging system using a custom `loggingService`. Every controller now tracks actions, inputs, and database results.
+
+**\*Error Handling:** Refactored all external API and Database calls to use `try/catch` blocks. The app now renders a user-friendly error page instead of crashing on 500 errors.
+
+**\*Documentation:** Added JSDoc comments to all controllers detailing Inputs, Outputs, and Purpose. Updated README to include architectural overview.
+
+**\*Resilience:** Added validation checks for External API responses (TMDB) to handle rate limiting and downtime gracefully.
+
 ### Components
 
 **Winston Logger (`src/config/logger.js`)**
@@ -80,6 +90,25 @@ logs/
   "ip": "192.168.1.1"
 }
 ```
+
+### Technical Architecture (Deliverable 7)
+
+This project follows the **Model-View-Controller (MVC)** architectural pattern. This ensures a clean separation between data management, user interface, and business logic.
+
+### MVC Components
+
+**\*Models (`src/models/`):** Responsible for all direct database interactions. We use `movieModel.js` to execute SQL queries via Supabase, ensuring the database logic is isolated from the rest of the app.
+
+**\*Views (`src/views/`):** Responsible for the UI. We use EJS templates to render dynamic HTML pages. Views receive data from Controllers but never interact with the database directly.
+
+**\*Controllers (`src/controllers/`):** The "brain" of the application. They receive the user's request, validate inputs, ask the Model for data, and decide which View to render.
+
+### Request Flow Example
+
+1. **Route:** A user visits `/movies`. The route handler in `routes/index.js` directs this to the `movieController`.
+2. **Controller:** `movieController.getMovies` is triggered. It checks the session to identify the user.
+3. **Model:** The controller calls `movieModel.getAllWatchlistMovies(userId)`. The model executes the SQL query and returns the data.
+4. **View:** The controller passes this data to `res.render('index', { movies })`, which generates the HTML sent to the browser.
 
 ## External API Integration
 
@@ -172,7 +201,7 @@ logs/
 
    ```bash
    npm run dev    # Development server with auto-reload
-   npm start      # Production server
+   npm start    # Production server
    ```
 
 5. **View logs**

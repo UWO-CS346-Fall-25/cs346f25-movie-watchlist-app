@@ -15,8 +15,13 @@ const TMDB_BASE_URL =
   process.env.TMDB_BASE_URL || 'https://api.themoviedb.org/3';
 
 /**
- * Search for movies using TMDB API
- * GET /api/search/movies?query=searchTerm
+ * Proxies a search request to the external TMDB API.
+ * Keeps API keys secure on the server side.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.query.query - The movie title to search for
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response containing external API results or error status
  */
 exports.searchMovies = async (req, res) => {
   try {
@@ -74,8 +79,12 @@ exports.searchMovies = async (req, res) => {
 };
 
 /**
- * Get movie details by TMDB ID
- * GET /api/movies/:tmdbId
+ * Fetches detailed metadata for a specific movie ID from TMDB.
+ *
+ * @param {Object} req - Express request object
+ * @param {string|number} req.params.tmdbId - The TMDB Movie ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response with movie details or 404/500 Error
  */
 exports.getMovieDetails = async (req, res) => {
   try {
@@ -137,8 +146,11 @@ exports.getMovieDetails = async (req, res) => {
 };
 
 /**
- * Get popular movies from TMDB API
- * GET /api/movies/popular
+ * Retrieves a list of currently popular movies from TMDB.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response with a list of popular movies
  */
 exports.getPopularMovies = async (req, res) => {
   try {

@@ -16,7 +16,14 @@ function getUserId(req) {
   return req.session?.user?.id || null;
 }
 
-// Get all movies in watchlist
+/**
+ * Retrieves all movies in the authenticated user's watchlist.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.session.user.id - The UUID of the authenticated user
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response containing the list of movies
+ */
 exports.getMovies = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -45,7 +52,14 @@ exports.getMovies = async (req, res) => {
   }
 };
 
-// Get all watched movies
+/**
+ * Retrieves all movies marked as watched by the user.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.session.user.id - The UUID of the authenticated user
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response containing the list of watched movies
+ */
 exports.getWatchedMovies = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -74,7 +88,14 @@ exports.getWatchedMovies = async (req, res) => {
   }
 };
 
-// Add a new movie
+/**
+ * Validates input and creates a new movie record in the database.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - The movie data (title, genre, desireScale, tmdbId, etc.)
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response with the created movie object or error
+ */
 exports.addMovie = async (req, res) => {
   const startTime = Date.now();
 
@@ -167,7 +188,16 @@ exports.addMovie = async (req, res) => {
   }
 };
 
-// Mark movie as watched
+/**
+ * Updates a specific movie's status to 'watched' and optionally adds a review.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.params.id - The ID of the movie to update
+ * @param {number} [req.body.rating] - Optional rating (1-5)
+ * @param {string} [req.body.review] - Optional text review
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends JSON response with the updated movie
+ */
 exports.markAsWatched = async (req, res) => {
   try {
     const movieId = req.params.id;
@@ -224,7 +254,14 @@ exports.markAsWatched = async (req, res) => {
   }
 };
 
-// Remove movie
+/**
+ * Removes a movie from the database.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.params.id - The ID of the movie to remove
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends success JSON or 404 error
+ */
 exports.removeMovie = async (req, res) => {
   try {
     const movieId = req.params.id;
@@ -256,7 +293,14 @@ exports.removeMovie = async (req, res) => {
   }
 };
 
-// Remove watched movie
+/**
+ * Removes a watched movie from the database.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.params.id - The ID of the movie to remove
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends success JSON or 404 error
+ */
 exports.removeWatchedMovie = async (req, res) => {
   try {
     const movieId = req.params.id;
@@ -296,7 +340,16 @@ exports.removeWatchedMovie = async (req, res) => {
   }
 };
 
-// Update movie review
+/**
+ * Updates the review and rating for a specific movie.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.params.id - The ID of the movie to update
+ * @param {string} req.body.review - The new review text
+ * @param {number} req.body.rating - The new rating
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Sends success JSON or 404/500 error
+ */
 exports.updateReview = async (req, res) => {
   try {
     const movieId = req.params.id;
