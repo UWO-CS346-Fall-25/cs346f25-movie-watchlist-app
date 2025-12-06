@@ -232,19 +232,14 @@ We have several hover over effects throughout the app and all pages are responsi
    # Edit .env with your Supabase credentials (URL and API key are already configured)
    ```
 
-5. **Test the connection**
 
-   ```bash
-   node test-supabase.js
-   ```
-
-6. **Start the application**
+5. **Start the application**
 
    ```bash
    npm run dev
    ```
 
-7. **Open your browser**
+6. **Open your browser**
 
    ```bash
    http://localhost:3000
