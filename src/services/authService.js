@@ -23,6 +23,10 @@ class AuthService {
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
+        options: {
+          // (Change this to actual production URL if it's hosted)
+          emailRedirectTo: 'http://localhost:3000/auth/callback',
+        },
       });
 
       if (error) {
