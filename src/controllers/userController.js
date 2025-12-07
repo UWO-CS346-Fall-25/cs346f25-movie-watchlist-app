@@ -9,10 +9,14 @@
  */
 
 const authService = require('../services/authService');
+const loggingService = require('../services/loggingService');
+const User = require('../models/User'); // Required for profile updates
 
 /**
- * GET /users/register
- * Display registration form
+ * Display registration form.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
  */
 exports.getRegister = (req, res) => {
   res.render('register', {
@@ -23,14 +27,24 @@ exports.getRegister = (req, res) => {
 };
 
 /**
- * POST /users/register
- * Process registration form
+ * Processes user registration with Supabase Auth.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.body.email - The user's email address
+ * @param {string} req.body.password - The user's password (min 6 characters)
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Renders 'login' view on success, or 'register' view on failure
  */
 exports.postRegister = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    console.log('Registration attempt for:', email);
+    loggingService.info('User registration attempt', {
+      email: email,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+    });
 
     // Validate input
     if (!email || !password) {
@@ -49,10 +63,32 @@ exports.postRegister = async (req, res, next) => {
       });
     }
 
-    // Register with Supabase Auth (no username)
+    // Check if email already exists in our database
+    const existingUser = await User.findByEmail(email);
+    if (existingUser) {
+      loggingService.warn('Registration failed - email already exists', {
+        email: email,
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+      });
+      return res.render('register', {
+        title: 'Register',
+        error:
+          'An account with this email already exists. Please use a different email or try logging in.',
+        csrfToken: req.csrfToken ? req.csrfToken() : '',
+      });
+    }
+
+    // Register with Supabase Auth
     const result = await authService.register(email, password);
 
     if (!result.success) {
+      loggingService.warn('Registration failed', {
+        email: email,
+        error: result.error,
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+      });
       return res.render('register', {
         title: 'Register',
         error: result.error,
@@ -60,7 +96,13 @@ exports.postRegister = async (req, res, next) => {
       });
     }
 
-    // Success - redirect to login with success message
+    // Success - redirect to login
+    loggingService.info('User registration successful', {
+      email: email,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+    });
+
     res.render('login', {
       title: 'Login',
       success: result.message,
@@ -68,14 +110,22 @@ exports.postRegister = async (req, res, next) => {
       csrfToken: req.csrfToken ? req.csrfToken() : '',
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    loggingService.error('Registration error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+    });
     next(error);
   }
 };
 
 /**
- * GET /users/login
- * Display login form
+ * Display login form.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
  */
 exports.getLogin = (req, res) => {
   res.render('login', {
@@ -87,14 +137,25 @@ exports.getLogin = (req, res) => {
 };
 
 /**
- * POST /users/login
- * Process login form
+ * Authenticates user credentials and initializes the server session.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.body.email - The user's email
+ * @param {string} req.body.password - The user's password
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Redirects to Home ('/') on success, or renders 'login' on failure
  */
 exports.postLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    console.log('Login attempt for:', email);
+    loggingService.info('User login attempt', {
+      email: email,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+      sessionId: req.sessionID,
+    });
 
     // Validate input
     if (!email || !password) {
@@ -118,10 +179,14 @@ exports.postLogin = async (req, res, next) => {
       });
     }
 
+    // Fetch the profile image from the public table to store in session
+    const userProfile = await User.findById(result.user.id);
+
     // Store user session
     req.session.user = {
       id: result.user.id,
       email: result.user.email,
+      profile_image_url: userProfile ? userProfile.profile_image_url : null,
     };
 
     req.session.supabaseSession = {
@@ -130,141 +195,353 @@ exports.postLogin = async (req, res, next) => {
       expires_at: result.session.expires_at,
     };
 
+    // Log session creation
+    loggingService.logSessionStart(req.sessionID, result.user.id);
+
     // show welcome message on login
     req.session.showWelcomeMessage = true;
 
     // Save session and redirect
     req.session.save((err) => {
       if (err) {
-        console.error('Session save error:', err);
+        loggingService.error('Session save error', {
+          error: err.message,
+          userId: result.user.id,
+        });
         return next(err);
       }
-      console.log('Login successful, redirecting to home');
+      loggingService.info('Login successful', {
+        userId: result.user.id,
+        sessionId: req.sessionID,
+      });
       res.redirect('/');
     });
   } catch (error) {
-    console.error('Login error:', error);
+    loggingService.error('Login error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email,
+      sessionId: req.sessionID,
+    });
     next(error);
   }
 };
 
 /**
- * POST /users/logout
- * Logout user
+ * Destroys the user session and handles Supabase logout.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Redirects to the login page
  */
 exports.postLogout = async (req, res, next) => {
   try {
+    const userId = req.session?.user?.id;
+    const sessionId = req.sessionID;
+
+    loggingService.info('User logout attempt', {
+      userId,
+      sessionId,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+    });
+
     // Logout from Supabase Auth
     const result = await authService.logout();
 
     if (!result.success) {
-      console.error('Supabase logout error:', result.error);
-      // Continue with session destruction even if Supabase logout fails
+      loggingService.warn('Supabase logout error', {
+        error: result.error,
+        userId,
+        sessionId,
+      });
     }
 
     // Destroy local session
     req.session.destroy((err) => {
       if (err) {
-        console.error('Error destroying session:', err);
+        loggingService.error('Error destroying session', {
+          error: err.message,
+          userId,
+          sessionId,
+        });
         return next(err);
       }
-      console.log('Logout successful, redirecting to login');
+
+      loggingService.logSessionEnd(sessionId, userId);
+      loggingService.info('Logout successful', {
+        userId,
+        sessionId,
+      });
+
       res.redirect('/users/login');
     });
   } catch (error) {
-    console.error('Logout error:', error);
+    loggingService.error('Logout error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+      sessionId: req.sessionID,
+    });
     next(error);
   }
 };
 
 /**
- * POST /users/update-email
- * Update user email
+ * Updates the authenticated user's email address.
  */
 exports.postUpdateEmail = async (req, res) => {
   try {
     const { email } = req.body;
+    const accessToken = req.session?.supabaseSession?.access_token;
 
     if (!email) {
-      return res.status(400).json({
-        success: false,
-        error: 'Email is required',
-      });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Email is required' });
     }
 
-    const result = await authService.updateEmail(email);
+    // Store old email for logging
+    const oldEmail = req.session.user.email;
+
+    const result = await authService.updateEmail(email, accessToken);
 
     if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error,
-      });
+      loggingService.warn('Email update failed', { error: result.error });
+      return res.status(400).json({ success: false, error: result.error });
     }
 
     // Update session with new email
     req.session.user.email = email;
     req.session.save();
 
+    loggingService.info('Email updated successfully', {
+      userId: req.session.user.id,
+      oldEmail: oldEmail,
+      newEmail: email,
+    });
+
+    // CHANGED: Return JSON instead of redirect
+    res.json({ success: true, message: 'Email updated successfully' });
+  } catch (error) {
+    loggingService.error('Email update error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+    });
+    res
+      .status(500)
+      .json({ success: false, error: 'Server error updating email' });
+  }
+};
+
+/**
+ * Updates the authenticated user's password.
+ */
+exports.postUpdatePassword = async (req, res) => {
+  try {
+    const { password, confirmPassword } = req.body;
+    const accessToken = req.session?.supabaseSession?.access_token;
+
+    if (!password || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'All fields are required' });
+    }
+
+    if (password !== confirmPassword) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Passwords do not match' });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Password must be 6+ characters' });
+    }
+
+    const result = await authService.updatePassword(password, accessToken);
+
+    if (!result.success) {
+      loggingService.warn('Password update failed', { error: result.error });
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    loggingService.info('Password updated successfully', {
+      userId: req.session.user.id,
+    });
+
+    // CHANGED: Return JSON instead of redirect
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    loggingService.error('Password update error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+    });
+    res
+      .status(500)
+      .json({ success: false, error: 'Server error updating password' });
+  }
+};
+
+/**
+ * Processes the avatar image upload.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Redirects to settings page
+ */
+exports.postUploadAvatar = async (req, res) => {
+  try {
+    const userId = req.session?.user?.id;
+    // CRITICAL: We retrieve the token here to pass it to the User model
+    // This allows the Supabase client to pass RLS checks
+    const accessToken = req.session?.supabaseSession?.access_token;
+
+    if (!req.file) {
+      return res.redirect('/settings');
+    }
+
+    // Path relative to 'public' folder so browser can see it
+    const imageUrl = '/uploads/' + req.file.filename;
+
+    // Update DB with the correct column name 'profile_image_url'
+    // We pass accessToken so Supabase allows the RLS update
+    await User.updateAvatar(userId, imageUrl, accessToken);
+
+    // Update Session immediately so the user sees the change without logging out
+    if (req.session.user) {
+      req.session.user.profile_image_url = imageUrl;
+    }
+
+    // Log success
+    loggingService.info('User updated profile picture', {
+      userId: userId,
+      filename: req.file.filename,
+    });
+
+    res.redirect('/settings');
+  } catch (error) {
+    loggingService.error('Avatar upload error', { error: error.message });
+    res.redirect('/settings');
+  }
+};
+
+/**
+ * Clear all watchlist data for the authenticated user.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with success/error status
+ */
+exports.postClearWatchlistData = async (req, res) => {
+  try {
+    const userId = req.session?.user?.id;
+    const accessToken = req.session?.supabaseSession?.access_token;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
+      });
+    }
+
+    // Clear all movies for this user
+    const movieModel = require('../models/movieModel');
+    const result = await movieModel.clearAllUserMovies(userId, accessToken);
+
+    if (!result) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to clear watchlist data',
+      });
+    }
+
+    loggingService.info('User cleared all watchlist data', {
+      userId: userId,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+    });
+
     res.json({
       success: true,
-      message: result.message,
+      message: 'All watchlist data has been cleared successfully',
     });
   } catch (error) {
-    console.error('Email update error:', error);
+    loggingService.error('Clear watchlist data error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+    });
     res.status(500).json({
       success: false,
-      error: 'Failed to update email',
+      error: 'Server error clearing watchlist data',
     });
   }
 };
 
 /**
- * POST /users/update-password
- * Update user password
+ * Delete the authenticated user's account completely.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with success/error status
  */
-exports.postUpdatePassword = async (req, res) => {
+exports.postDeleteAccount = async (req, res) => {
   try {
-    const { password, confirmPassword } = req.body;
+    const userId = req.session?.user?.id;
+    const accessToken = req.session?.supabaseSession?.access_token;
 
-    if (!password || !confirmPassword) {
-      return res.status(400).json({
+    if (!userId) {
+      return res.status(401).json({
         success: false,
-        error: 'Both password fields are required',
+        error: 'User not authenticated',
       });
     }
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        error: 'Passwords do not match',
-      });
-    }
+    // First clear all user's movies
+    const movieModel = require('../models/movieModel');
+    await movieModel.clearAllUserMovies(userId, accessToken);
 
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        error: 'Password must be at least 6 characters long',
-      });
-    }
-
-    const result = await authService.updatePassword(password);
+    // Delete user from Supabase Auth and database
+    const result = await authService.deleteAccount(accessToken);
 
     if (!result.success) {
-      return res.status(400).json({
+      return res.status(500).json({
         success: false,
-        error: result.error,
+        error: result.error || 'Failed to delete account',
       });
     }
+
+    // Delete user record from our database
+    await User.delete(userId);
+
+    loggingService.info('User account deleted', {
+      userId: userId,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+    });
+
+    // Destroy session
+    req.session.destroy();
 
     res.json({
       success: true,
-      message: result.message,
+      message: 'Account deleted successfully',
+      redirect: '/users/login',
     });
   } catch (error) {
-    console.error('Password update error:', error);
+    loggingService.error('Delete account error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+    });
     res.status(500).json({
       success: false,
-      error: 'Failed to update password',
+      error: 'Server error deleting account',
     });
   }
 };

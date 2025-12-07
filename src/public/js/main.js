@@ -219,6 +219,16 @@ const filterDesire = document.getElementById('filterDesire');
 const clearFiltersBtn = document.getElementById('clearFilters');
 const clearListBtn = document.getElementById('clearList');
 
+// Function to update watchlist count in the header
+function updateWatchlistCount() {
+  const movieCards = document.querySelectorAll('#movieList .movie-card');
+  const count = movieCards.length;
+  const headerElement = document.querySelector('.list-header h2');
+  if (headerElement) {
+    headerElement.textContent = `Your Watchlist (${count} movies)`;
+  }
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', function () {
   initializeApp();
@@ -251,55 +261,63 @@ function renderMovies(movies = []) {
   }
 
   movieList.innerHTML = movies
-    .map(
-      (movie) => `
+    .map((movie) => {
+      return `
     <div class="movie-card" data-id="${movie.id}">
-      ${
-        movie.posterPath
-          ? `
       <div class="movie-poster-container">
-        <img
-          src="https://image.tmdb.org/t/p/w300${movie.posterPath}"
-          alt="${movie.title} poster"
-          class="movie-poster-img"
-        />
+        ${
+          movie.posterPath && movie.posterPath.trim() !== ''
+            ? `<img
+                src="https://image.tmdb.org/t/p/w300${movie.posterPath}"
+                alt="${movie.title} poster"
+                class="movie-poster-img"
+              />`
+            : `<div class="movie-poster-placeholder">
+                <div class="placeholder-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/>
+                  </svg>
+                </div>
+                <div class="placeholder-title">${movie.title}</div>
+                <div class="placeholder-subtitle">Custom Movie</div>
+              </div>`
+        }
       </div>
-      `
-          : ''
-      }
-      <div class="movie-header">
-        <h3 class="movie-title">${movie.title}</h3>
-        <span class="movie-genre">${movie.genre}</span>
-      </div>
-      ${
-        movie.overview
-          ? `
-      <div class="movie-overview">
-        ${movie.overview.substring(0, 120)}${movie.overview.length > 120 ? '...' : ''}
-      </div>
-      `
-          : ''
-      }
-      <div class="movie-details">
-        <div class="desire-scale">
-          <span>Desire to watch:</span>
-          <div class="stars">${'★'.repeat(movie.desireScale)}${'☆'.repeat(
-            5 - movie.desireScale
-          )}</div>
+      <div class="movie-content">
+        ${
+          movie.overview
+            ? `
+        <div class="movie-overview">
+          ${movie.overview.substring(0, 120)}${movie.overview.length > 120 ? '...' : ''}
         </div>
-        <div class="watch-date">Added: ${formatDate(movie.dateAdded)}</div>
-      </div>
-      <div class="movie-actions">
-        <button class="btn-primary mark-watched-btn" data-movie-id="${
-          movie.id
-        }">Mark Watched</button>
-        <button class="btn-danger remove-movie-btn" data-movie-id="${
-          movie.id
-        }">Remove</button>
+        `
+            : ''
+        }
+        <div class="movie-header">
+          <h3 class="movie-title">${movie.title}</h3>
+          <span class="movie-genre">${movie.genre}</span>
+        </div>
+        <div class="movie-details">
+          <div class="desire-scale">
+            <span>Desire to watch:</span>
+            <div class="stars">${'★'.repeat(movie.desireScale)}${'☆'.repeat(
+              5 - movie.desireScale
+            )}</div>
+          </div>
+          <div class="watch-date">Added: ${formatDate(movie.dateAdded)}</div>
+        </div>
+        <div class="movie-actions">
+          <button class="btn-primary mark-watched-btn" data-movie-id="${
+            movie.id
+          }">Mark Watched</button>
+          <button class="btn-danger remove-movie-btn" data-movie-id="${
+            movie.id
+          }">Remove</button>
+        </div>
       </div>
     </div>
-  `
-    )
+  `;
+    })
     .join('');
 
   // Add event listeners to buttons (no inline onclick)
@@ -310,6 +328,9 @@ function renderMovies(movies = []) {
   document.querySelectorAll('.remove-movie-btn').forEach((btn) => {
     btn.addEventListener('click', handleRemoveMovie);
   });
+
+  // Update the watchlist count in the header
+  updateWatchlistCount();
 }
 
 async function handleAddMovie(e) {
@@ -410,7 +431,11 @@ function displaySearchResults(movies) {
         ${
           posterUrl
             ? `<img src="${posterUrl}" alt="${movie.title}" class="search-result-poster" />`
-            : '<div class="search-result-poster placeholder">🎬</div>'
+            : `<div class="search-result-poster placeholder">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="placeholder-search-icon">
+                  <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/>
+                </svg>
+              </div>`
         }
         <div class="search-result-info">
           <div class="search-result-title">${movie.title}</div>
@@ -450,12 +475,18 @@ window.selectMovie = async function (tmdbId) {
     const genre = mapTMDBGenre(movie.genres);
     document.getElementById('finalGenre').value = genre;
 
-    // Display selected movie
-    const posterUrl = movie.poster_path
-      ? `https://image.tmdb.org/t/p/w300${movie.poster_path}`
-      : '/images/placeholder-poster.png';
+    // Display selected movie poster
+    const posterElement = document.getElementById('selectedPoster');
 
-    document.getElementById('selectedPoster').src = posterUrl;
+    if (movie.poster_path && movie.poster_path.trim() !== '') {
+      const imageUrl = `https://image.tmdb.org/t/p/w300${movie.poster_path}`;
+      // Set image with fallback to placeholder on error
+      posterElement.outerHTML = `<img id="selectedPoster" class="selected-poster" src="${imageUrl}" alt="${movie.title} poster"
+        onerror="window.showModalPlaceholder('${movie.title.replace(/'/g, "\\'")}')" />`;
+    } else {
+      // No poster path, use placeholder immediately
+      window.showModalPlaceholder(movie.title);
+    }
     document.getElementById('selectedTitle').textContent = movie.title;
     document.getElementById('selectedYear').textContent = movie.release_date
       ? `Released: ${new Date(movie.release_date).getFullYear()}`
@@ -468,6 +499,24 @@ window.selectMovie = async function (tmdbId) {
   } catch (error) {
     console.error('Error selecting movie:', error);
     showNotification('Failed to load movie details', 'error');
+  }
+};
+
+// Handle modal image errors and show placeholder
+window.showModalPlaceholder = function (movieTitle) {
+  const posterElement = document.getElementById('selectedPoster');
+  if (posterElement) {
+    posterElement.outerHTML = `
+      <div id="selectedPoster" class="selected-poster modal-poster-placeholder">
+        <div class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/>
+          </svg>
+        </div>
+        <div class="placeholder-title">${movieTitle}</div>
+        <div class="placeholder-subtitle">Movie Preview</div>
+      </div>
+    `;
   }
 };
 
@@ -608,6 +657,9 @@ async function handleMarkAsWatched(e) {
   const movieCard = e.target.closest('.movie-card');
   const movieTitle = movieCard.querySelector('.movie-title').textContent;
 
+  // Store the card reference globally so the submit functions can access it
+  window.currentMovieCard = movieCard;
+
   // Show rating/review modal
   showWatchedModal(movieId, movieTitle);
 }
@@ -674,6 +726,8 @@ function closeWatchedModal() {
   if (modal) {
     modal.remove();
   }
+  // Clean up the stored movie card reference
+  window.currentMovieCard = null;
 }
 
 // Submit watched form with rating and review
@@ -702,6 +756,13 @@ async function submitWatchedForm(movieId) {
 
     if (result.success) {
       closeWatchedModal();
+      // Remove the movie card from DOM immediately using stored reference
+      if (window.currentMovieCard) {
+        window.currentMovieCard.remove();
+        window.currentMovieCard = null; // Clean up
+      }
+      // Update the count immediately
+      updateWatchlistCount();
       loadMovies(); // Refresh the movie list
       showNotification(
         `Movie marked as watched with ${rating} star${rating > 1 ? 's' : ''}!`,
@@ -727,6 +788,13 @@ async function submitWatchedFormQuick(movieId) {
 
     if (result.success) {
       closeWatchedModal();
+      // Remove the movie card from DOM immediately using stored reference
+      if (window.currentMovieCard) {
+        window.currentMovieCard.remove();
+        window.currentMovieCard = null; // Clean up
+      }
+      // Update the count immediately
+      updateWatchlistCount();
       loadMovies(); // Refresh the movie list
       showNotification('Movie marked as watched!', 'success');
     } else {
@@ -751,7 +819,15 @@ async function handleRemoveMovie(e) {
     const result = await response.json();
 
     if (result.success) {
-      loadMovies(); // Refresh the movie list
+      // Remove the movie card immediately from the DOM
+      const movieCard = e.target.closest('.movie-card');
+      if (movieCard) {
+        movieCard.remove();
+      }
+      // Update the count immediately
+      updateWatchlistCount();
+      // Then refresh the full list from server
+      loadMovies();
       showNotification('Movie removed successfully!', 'success');
     } else {
       showNotification('Failed to remove movie', 'error');
@@ -766,6 +842,22 @@ async function loadMovies() {
   try {
     const response = await fetch('/api/movies');
     const data = await response.json();
+
+    // Check if movieList already has content and if it matches what we're about to render
+    const movieList = document.getElementById('movieList');
+    if (movieList && movieList.children.length > 0) {
+      // If there's already content (likely from server-side rendering),
+      // only re-render if the data is significantly different
+      const existingCards = movieList.querySelectorAll('.movie-card').length;
+      if (existingCards === data.movies.length) {
+        // Same number of movies, likely same content - don't re-render to preserve placeholders
+        console.log(
+          'Movies already rendered server-side, skipping client re-render'
+        );
+        return;
+      }
+    }
+
     renderMovies(data.movies);
   } catch (error) {
     console.error('Error loading movies:', error);
@@ -903,6 +995,9 @@ function addMovieCardEventListeners() {
   document.querySelectorAll('.remove-movie-btn').forEach((btn) => {
     btn.addEventListener('click', handleRemoveMovie);
   });
+
+  // Load existing movies when page initializes
+  loadMovies();
 }
 
 // History page functions
@@ -1148,6 +1243,8 @@ function initializeSettings() {
   const avatarInput = document.getElementById('avatarInput');
   const emailForm = document.getElementById('emailForm');
   const passwordForm = document.getElementById('passwordForm');
+  const clearAllDataBtn = document.getElementById('clearAllData');
+  const deleteAccountBtn = document.getElementById('deleteAccount');
 
   if (themeInputs) {
     themeInputs.forEach((input) => {
@@ -1166,6 +1263,14 @@ function initializeSettings() {
 
   if (passwordForm) {
     passwordForm.addEventListener('submit', handlePasswordUpdate);
+  }
+
+  if (clearAllDataBtn) {
+    clearAllDataBtn.addEventListener('click', handleClearAllData);
+  }
+
+  if (deleteAccountBtn) {
+    deleteAccountBtn.addEventListener('click', handleDeleteAccount);
   }
 }
 
@@ -1219,6 +1324,9 @@ async function handleEmailUpdate(e) {
   e.preventDefault();
 
   const emailInput = document.getElementById('email');
+  // 1. Get the CSRF token from the hidden input field
+  const csrfToken = document.querySelector('input[name="_csrf"]').value;
+
   const newEmail = emailInput.value.trim();
 
   if (!newEmail) {
@@ -1237,9 +1345,9 @@ async function handleEmailUpdate(e) {
     const response = await fetch('/users/update-email', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify({ email: newEmail }),
+      body: `email=${encodeURIComponent(newEmail)}&_csrf=${encodeURIComponent(csrfToken)}`,
     });
 
     const result = await response.json();
@@ -1247,7 +1355,7 @@ async function handleEmailUpdate(e) {
     if (result.success) {
       showNotification(result.message, 'success');
     } else {
-      showNotification(result.error, 'error');
+      showNotification(result.error || 'Failed to update email', 'error');
     }
   } catch (error) {
     console.error('Error updating email:', error);
@@ -1261,6 +1369,8 @@ async function handlePasswordUpdate(e) {
 
   const newPasswordInput = document.getElementById('newPassword');
   const confirmPasswordInput = document.getElementById('confirmPassword');
+  // 1. Get the CSRF token here too
+  const csrfToken = document.querySelector('input[name="_csrf"]').value;
 
   const newPassword = newPasswordInput.value;
   const confirmPassword = confirmPasswordInput.value;
@@ -1285,6 +1395,8 @@ async function handlePasswordUpdate(e) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // 2. Include the token in the headers
+        'CSRF-Token': csrfToken,
       },
       body: JSON.stringify({
         password: newPassword,
@@ -1295,12 +1407,12 @@ async function handlePasswordUpdate(e) {
     const result = await response.json();
 
     if (result.success) {
-      // Clear the form
+      // Clear the form on success
       newPasswordInput.value = '';
       confirmPasswordInput.value = '';
       showNotification(result.message, 'success');
     } else {
-      showNotification(result.error, 'error');
+      showNotification(result.error || 'Failed to update password', 'error');
     }
   } catch (error) {
     console.error('Error updating password:', error);
@@ -1341,11 +1453,131 @@ function clearAllMovies() {
           </div>
         `;
       }
+      // Update the watchlist count
+      updateWatchlistCount();
       showNotification('Watchlist cleared successfully', 'success');
     } catch (error) {
       console.error('Error clearing movies:', error);
       showNotification('Error clearing watchlist', 'error');
     }
+  }
+}
+
+// Handle clear all watchlist data
+async function handleClearAllData(e) {
+  e.preventDefault();
+
+  const confirmed = confirm(
+    'Are you sure you want to clear ALL your watchlist data? This action cannot be undone.'
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const csrfToken =
+      document.querySelector('input[name="_csrf"]')?.value || '';
+    console.log('CSRF Token found:', csrfToken); // Debug log
+
+    if (!csrfToken) {
+      showNotification(
+        'Security token not found. Please refresh the page.',
+        'error'
+      );
+      return;
+    }
+
+    // Use URLSearchParams to properly handle CSRF token (like form submission)
+    /* eslint-disable no-undef */
+    const params = new URLSearchParams();
+    params.append('_csrf', csrfToken);
+    /* eslint-enable no-undef */
+
+    const response = await fetch('/users/clear-watchlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      showNotification(data.message, 'success');
+      // Refresh the page or redirect to home after a delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    } else {
+      showNotification(data.error || 'Failed to clear watchlist data', 'error');
+    }
+  } catch (error) {
+    console.error('Error clearing watchlist data:', error);
+    showNotification(
+      'An error occurred while clearing watchlist data',
+      'error'
+    );
+  }
+}
+
+// Handle delete account
+async function handleDeleteAccount(e) {
+  e.preventDefault();
+
+  const confirmed = confirm(
+    'Are you sure you want to DELETE YOUR ACCOUNT? This will permanently delete all your data and cannot be undone.'
+  );
+
+  if (!confirmed) return;
+
+  // Double confirmation for account deletion
+  const doubleConfirmed = confirm(
+    'This is your final warning. Are you absolutely sure you want to delete your account? All your data will be lost forever.'
+  );
+
+  if (!doubleConfirmed) return;
+
+  try {
+    const csrfToken =
+      document.querySelector('input[name="_csrf"]')?.value || '';
+    console.log('CSRF Token found:', csrfToken); // Debug log
+
+    if (!csrfToken) {
+      showNotification(
+        'Security token not found. Please refresh the page.',
+        'error'
+      );
+      return;
+    }
+
+    // Use URLSearchParams to properly handle CSRF token (like form submission)
+    /* eslint-disable no-undef */
+    const params = new URLSearchParams();
+    params.append('_csrf', csrfToken);
+    /* eslint-enable no-undef */
+
+    const response = await fetch('/users/delete-account', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      showNotification(data.message, 'success');
+      // Redirect to login page
+      setTimeout(() => {
+        window.location.href = data.redirect || '/users/login';
+      }, 2000);
+    } else {
+      showNotification(data.error || 'Failed to delete account', 'error');
+    }
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    showNotification('An error occurred while deleting account', 'error');
   }
 }
 

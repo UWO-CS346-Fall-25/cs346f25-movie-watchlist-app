@@ -2,30 +2,48 @@
  * User Routes
  *
  * Define routes related to user operations here.
- * This could include:
- * - User registration
- * - User login/logout
- * - User profile
- * - User management (admin)
- *
- * Example usage:
- * const express = require('express');
- * const router = express.Router();
- * const userController = require('../controllers/userController');
- *
- * router.get('/register', userController.getRegister);
- * router.post('/register', userController.postRegister);
- * router.get('/login', userController.getLogin);
- * router.post('/login', userController.postLogin);
- * router.post('/logout', userController.postLogout);
- *
- * module.exports = router;
  */
 
-/* src/routes/users.js */
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs'); // REQUIRED: To check if folders exist
+
+// Configure Multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // 1. Resolve the absolute path to src/public/uploads
+    // __dirname is 'src/routes', so we go up one level (..) to 'src', then into 'public/uploads'
+    const uploadPath = path.join(__dirname, '../public/uploads');
+
+    // 2. Check if folder exists, if not, create it automatically
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Naming: user-ID-timestamp.ext
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'user-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+// Setup upload middleware with limits and filters
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed.'), false);
+    }
+  },
+});
 
 // GET /users/login - Display login form
 router.get('/login', userController.getLogin);
@@ -47,5 +65,18 @@ router.post('/update-email', userController.postUpdateEmail);
 
 // POST /users/update-password - Update user password
 router.post('/update-password', userController.postUpdatePassword);
+
+// POST /users/upload-avatar - Handle image upload
+router.post(
+  '/upload-avatar',
+  upload.single('avatar'),
+  userController.postUploadAvatar
+);
+
+// POST /users/clear-watchlist - Clear all watchlist data
+router.post('/clear-watchlist', userController.postClearWatchlistData);
+
+// POST /users/delete-account - Delete user account
+router.post('/delete-account', userController.postDeleteAccount);
 
 module.exports = router;

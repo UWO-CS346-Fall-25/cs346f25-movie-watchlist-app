@@ -19,7 +19,14 @@ function getUserId(req) {
   return req.session?.user?.id || null;
 }
 
-// Home page controller
+/**
+ * Renders the Home page (Watchlist).
+ * Checks for authentication and handles the one-time welcome message.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Renders 'index' view with movies or redirects to login
+ */
 exports.getHome = async (req, res) => {
   try {
     const user = getSessionUser(req);
@@ -59,7 +66,13 @@ exports.getHome = async (req, res) => {
   }
 };
 
-// History page controller
+/**
+ * Renders the History page showing watched movies.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} Renders 'history' view with watched movies or redirects to login
+ */
 exports.getHistory = async (req, res) => {
   try {
     const user = getSessionUser(req);
@@ -91,7 +104,13 @@ exports.getHistory = async (req, res) => {
   }
 };
 
-// Settings page controller
+/**
+ * Renders the User Settings page.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {void} Renders 'settings' view or redirects to login
+ */
 exports.getSettings = (req, res) => {
   const user = getSessionUser(req);
 

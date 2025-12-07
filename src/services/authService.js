@@ -5,6 +5,8 @@
  */
 
 const supabase = require('../config/supabase');
+const { admin: supabaseAdmin } = require('../config/supabase');
+const loggingService = require('./loggingService');
 
 class AuthService {
   /**
@@ -15,15 +17,24 @@ class AuthService {
    */
   async register(email, password) {
     try {
+      loggingService.logAuthAttempt(email, 'register');
+
       // Register user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
+        options: {
+          // (Change this to actual production URL if it's hosted)
+          emailRedirectTo: 'http://localhost:3000/auth/callback',
+        },
       });
 
       if (error) {
+        loggingService.logAuthFailure(email, error.message, 'register');
         throw new Error(`Registration failed: ${error.message}`);
       }
+
+      loggingService.logAuthSuccess(data.user.id, email, 'register');
 
       return {
         success: true,
@@ -33,7 +44,7 @@ class AuthService {
           'Registration successful! Please check your email to verify your account.',
       };
     } catch (error) {
-      console.error('Registration error:', error);
+      loggingService.logAuthFailure(email, error.message, 'register');
       return {
         success: false,
         error: error.message,
@@ -49,14 +60,19 @@ class AuthService {
    */
   async login(email, password) {
     try {
+      loggingService.logAuthAttempt(email, 'login');
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
       });
 
       if (error) {
+        loggingService.logAuthFailure(email, error.message, 'login');
         throw new Error(`Login failed: ${error.message}`);
       }
+
+      loggingService.logAuthSuccess(data.user.id, email, 'login');
 
       return {
         success: true,
@@ -64,7 +80,7 @@ class AuthService {
         session: data.session,
       };
     } catch (error) {
-      console.error('Login error:', error);
+      loggingService.logAuthFailure(email, error.message, 'login');
       return {
         success: false,
         error: error.message,
@@ -74,14 +90,20 @@ class AuthService {
 
   /**
    * Logout user
+   * @param {string} userId - Optional user ID for logging
    * @returns {Promise<Object>} Logout result
    */
-  async logout() {
+  async logout(userId = null) {
     try {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
+        loggingService.logAuthFailure('unknown', error.message, 'logout');
         throw new Error(`Logout failed: ${error.message}`);
+      }
+
+      if (userId) {
+        loggingService.logAuthSuccess(userId, 'unknown', 'logout');
       }
 
       return {
@@ -89,7 +111,7 @@ class AuthService {
         message: 'Logged out successfully',
       };
     } catch (error) {
-      console.error('Logout error:', error);
+      loggingService.logAuthFailure('unknown', error.message, 'logout');
       return {
         success: false,
         error: error.message,
@@ -129,7 +151,7 @@ class AuthService {
   }
 
   /**
-   * Get user by ID
+   * Get user by ID (Uses DB Client)
    * @param {string} userId - User ID
    * @returns {Promise<Object>} User data
    */
@@ -162,10 +184,29 @@ class AuthService {
   /**
    * Update user email
    * @param {string} newEmail - New email address
+   * @param {string} accessToken - REQUIRED: The user's access token to prove identity
    * @returns {Promise<Object>} Update result
    */
-  async updateEmail(newEmail) {
+  async updateEmail(newEmail, accessToken) {
     try {
+      if (!accessToken) {
+        throw new Error('Authentication required to update email');
+      }
+
+      // 1. Set the session on the client so it knows who is making the request
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken, // Often required by the method signature
+      });
+
+      if (sessionError) {
+        console.warn(
+          'Session set warning (might be expired, trying anyway):',
+          sessionError.message
+        );
+      }
+
+      // 2. Perform the update
       const { data, error } = await supabase.auth.updateUser({
         email: newEmail,
       });
@@ -178,7 +219,7 @@ class AuthService {
         success: true,
         user: data.user,
         message:
-          'Email updated successfully! Please check your new email to confirm the change.',
+          'Email update initiated! Please check your new email address and click the confirmation link to complete the change.',
       };
     } catch (error) {
       console.error('Email update error:', error);
@@ -192,10 +233,29 @@ class AuthService {
   /**
    * Update user password
    * @param {string} newPassword - New password
+   * @param {string} accessToken - REQUIRED: The user's access token
    * @returns {Promise<Object>} Update result
    */
-  async updatePassword(newPassword) {
+  async updatePassword(newPassword, accessToken) {
     try {
+      if (!accessToken) {
+        throw new Error('Authentication required to update password');
+      }
+
+      // 1. Set the session
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken,
+      });
+
+      if (sessionError) {
+        console.warn(
+          'Session set warning (might be expired, trying anyway):',
+          sessionError.message
+        );
+      }
+
+      // 2. Perform the update
       const { data, error } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -239,6 +299,64 @@ class AuthService {
       };
     } catch (error) {
       console.error('Password reset error:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Delete user account completely from Supabase Auth
+   * Note: This completely removes the user from Supabase Auth so they cannot log back in.
+   * @param {string} accessToken - User's access token
+   * @returns {Promise<Object>} Delete result
+   */
+  async deleteAccount(accessToken) {
+    try {
+      // Set the session to authenticate the user and get their ID
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken,
+      });
+
+      if (sessionError) {
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
+
+      // Get current user
+      const {
+        data: { user },
+        error: getUserError,
+      } = await supabase.auth.getUser();
+
+      if (getUserError || !user) {
+        throw new Error(
+          `Could not get user: ${getUserError?.message || 'User not found'}`
+        );
+      }
+
+      // Delete the user from Supabase Auth using admin client
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(
+        user.id
+      );
+
+      if (deleteError) {
+        throw new Error(`Account deletion failed: ${deleteError.message}`);
+      }
+
+      // Sign out is not needed since user is deleted, but let's do it for safety
+      await supabase.auth.signOut();
+
+      loggingService.logAuthSuccess(user.id, user.email, 'delete_account');
+
+      return {
+        success: true,
+        message: 'Account deleted successfully',
+        userId: user.id, // Return userId so we can delete from our database
+      };
+    } catch (error) {
+      loggingService.logAuthFailure('unknown', error.message, 'delete_account');
       return {
         success: false,
         error: error.message,

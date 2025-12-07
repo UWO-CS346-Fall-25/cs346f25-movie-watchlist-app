@@ -1,145 +1,126 @@
 # Movie Watchlist Application
 
-A web application that allows users to track movies they want to watch and have already watched, providing a seamless way to manage your movie-watching experience.
+A full-stack web application that allows users to track movies they want to watch and have already watched, with comprehensive logging for monitoring and debugging.
+
+## Features
+
+- 🎬 **Movie Management** - Add, remove, and track movies you want to watch
+- ⭐ **Ratings & Reviews** - Rate and review movies you've watched
+- 🔍 **Movie Search** - Integration with TMDB API for real-time movie search
+- 🔍 **Powerful Filtering** - Find movies by name, genre, rating, or date
+- 🌓 **Theme Switching** - Toggle between light and dark mode
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
+- 🔒 **User Authentication** - Secure login and registration with Supabase Auth
+- ☁️ **Cloud Database** - Real-time data storage with Supabase
+- 📊 **Comprehensive Logging** - Application monitoring with Winston and Morgan
+
+## Logging System (Deliverable 7)
+
+### Overview
+
+The application implements a comprehensive logging system using Winston and Morgan for application monitoring, debugging, and security auditing.
+
+## Changelog
+
+**\*Logging:** Implemented a standardized logging system using a custom `loggingService`. Every controller now tracks actions, inputs, and database results.
+
+**\*Error Handling:** Refactored all external API and Database calls to use `try/catch` blocks. The app now renders a user-friendly error page instead of crashing on 500 errors.
+
+**\*Documentation:** Added JSDoc comments to all controllers detailing Inputs, Outputs, and Purpose. Updated README to include architectural overview.
+
+**\*Resilience:** Added validation checks for External API responses (TMDB) to handle rate limiting and downtime gracefully.
+
+### Components
+
+**Winston Logger (`src/config/logger.js`)**
+
+- Multi-transport logging (file + console)
+- JSON formatting for structured logs
+- Log rotation with file size limits
+- Multiple log levels (error, warn, info, http, debug)
+- Separate files for different log types
+
+**Morgan HTTP Logger (`src/middleware/httpLogger.js`)**
+
+- HTTP request/response logging
+- Custom tokens for user-id and session-id
+- Colored output for development
+- Integration with Winston logger stream
+
+**Centralized Logging Service (`src/services/loggingService.js`)**
+
+- Specialized methods for different application areas:
+  - Authentication events
+  - Database operations
+  - API calls
+  - Security events
+  - Performance monitoring
+  - Session lifecycle
+
+### Log Files Structure
+
+```text
+logs/
+├── combined.log     # All log levels combined
+├── error.log        # Error-level logs only
+├── http.log         # HTTP request logs
+├── exceptions.log   # Unhandled exceptions
+└── rejections.log   # Unhandled promise rejections
+```
+
+### Integration Points
+
+- **Application Lifecycle**: Server startup/shutdown, graceful shutdown handling
+- **HTTP Middleware**: All incoming requests logged with response times and status codes
+- **Authentication Flow**: Login/logout attempts, session creation/destruction
+- **Database Operations**: CRUD operations with user context and timing
+- **Error Handling**: Structured error logging with stack traces and context
+- **Security Events**: Failed authentication attempts, unauthorized access
+
+### Log Format Example
+
+```json
+{
+  "timestamp": "2025-12-03 17:44:31:4431",
+  "level": "info",
+  "message": "User login successful",
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "sessionId": "sess_abc123",
+  "userAgent": "Mozilla/5.0...",
+  "ip": "192.168.1.1"
+}
+```
+
+### Technical Architecture (Deliverable 7)
+
+This project follows the **Model-View-Controller (MVC)** architectural pattern. This ensures a clean separation between data management, user interface, and business logic.
+
+### MVC Components
+
+**\*Models (`src/models/`):** Responsible for all direct database interactions. We use `movieModel.js` to execute SQL queries via Supabase, ensuring the database logic is isolated from the rest of the app.
+
+**\*Views (`src/views/`):** Responsible for the UI. We use EJS templates to render dynamic HTML pages. Views receive data from Controllers but never interact with the database directly.
+
+**\*Controllers (`src/controllers/`):** The "brain" of the application. They receive the user's request, validate inputs, ask the Model for data, and decide which View to render.
+
+### Request Flow Example
+
+1. **Route:** A user visits `/movies`. The route handler in `routes/index.js` directs this to the `movieController`.
+2. **Controller:** `movieController.getMovies` is triggered. It checks the session to identify the user.
+3. **Model:** The controller calls `movieModel.getAllWatchlistMovies(userId)`. The model executes the SQL query and returns the data.
+4. **View:** The controller passes this data to `res.render('index', { movies })`, which generates the HTML sent to the browser.
 
 ## External API Integration
 
 ### TMDB (The Movie Database) API
 
-This application integrates with The Movie Database (TMDB) API to provide real-time movie search functionality.
-
-**API Details:**
-
-- **API Name:** The Movie Database (TMDB) API
 - **Base URL:** `https://api.themoviedb.org/3`
-- **Authentication:** Free API key required (no credit card needed)
-- **Data Format:** JSON
-- **Documentation:** https://developers.themoviedb.org/3
-
-**Endpoints Used:**
-
-1. **Search Movies:** `GET /search/movie`
-   - Returns movie search results based on query
-   - Parameters: `query` (search term), `language`, `page`
-
-2. **Popular Movies:** `GET /movie/popular`
-   - Returns currently popular movies
-   - Parameters: `language`, `page`
-
-3. **Movie Details:** `GET /movie/{movie_id}`
-   - Returns detailed information about a specific movie
-   - Parameters: `movie_id`
-
-**Feature Flow:**
-
-1. User navigates to `/search` page
-2. User enters search query in the form
-3. Frontend JavaScript sends GET request to `/api/search/movies?query=searchTerm`
-4. Express controller (`apiController.js`) receives request
-5. Controller makes server-side fetch call to TMDB API with API key
-6. TMDB API returns JSON movie data
-7. Controller processes and returns data to frontend
-8. EJS view (`search.ejs`) renders movie cards with posters, titles, ratings
-9. Popular movies are loaded automatically on page load using `/api/movies/popular`
-
-**Routes:**
-
-- `GET /search` - Renders the movie search page
-- `GET /api/search/movies?query=<term>` - Server-side API call to search movies
-- `GET /api/movies/popular` - Server-side API call to get popular movies
-- `GET /api/movies/tmdb/:tmdbId` - Server-side API call to get movie details
-
-**Security:**
-
-- API key stored in `.env` file (never committed to git)
-- All API calls made server-side to protect API key
-- Error handling for rate limits and network failures
-- Input validation on search queries
-
-
-## Pages and Features
-
-### feature/week11 improvements
-
-So, we did it slightly backwards. We did user authorization last week, though we added a visual cue to the login this week. We focused on full user database integration. You can now insert movies into your watchlist and it will save. You can add your review, and mark it as watched. Then, you can go to your watch history and look at all of your reviews there. You can delete a review and filter them by different metrics. We also changed the notification pop up to go on the top left of the screen as it was hiding the page route links on the nav bar.
-
-### feature/week10 improvements
-
-This deliverable integrates a Supabase PostgreSQL database. The primary CRUD (Create/Read) slice implemented is **User Authentication**.
-
-**\*Create:** Users can register via the `/register` page. This form posts to the `userController`, which uses `supabase.auth.signUp()` to `INSERT` a new user into the Supabase `auth.users` table.
-**\*Read:** Users can log in via the `/login` page. This form posts to the `userController`, which uses `supabase.auth.signInWithPassword()` to query (or `SELECT`) the `auth.users` table to authenticate the user and create a session.
-
-The screenshots for the table schemas are in the docs/ folder.
-
-We are currently sharing a database with our learn_french application from Mobile App Development.
-
-## (Preview) Row-Level Security (RLS)
-
-Once auth is fully implemented, we would secure the `movies` table by enabling Row-Level Security (RLS). We would add a `user_id` column (a foreign key to `auth.users.id`) to the `movies` table. Then, we would create an RLS policy that states a user can only `SELECT`, `INSERT`, `UPDATE`, or `DELETE` movies where the `movies.user_id` column matches their own `auth.uid()`. This would ensure that users can only see and manage their own movie watchlist.
-
-### feature/week9 improvements
-
-Some of the requirements were hit in the previous deliverable. In addition to this, we implemented the login and registration form page. We changed the font, and made filter inputs hidden but expandable.
-We have several hover over effects throughout the app and all pages are responsive to screen size.
-
-### Home Page
-
-**Purpose:** Main landing page for users to view and manage their movie watchlist.
-
-**What's Visible:**
-
-- Navigation bar with links to Home, History, and Settings pages
-- A hero section with the app title and description
-- Movie addition form with fields for title, genre, and desire-to-watch scale
-- Filtering options (by name, genre, desire level)
-- Grid display of unwatched movies with:
-  - Movie title and genre
-  - Desire-to-watch rating (1-5 stars)
-  - Options to mark as watched or remove from list
-- Empty state display when no movies are added
-
-![alt text](homepage.png)
-
-![alt text](homepage.png)
-
-### History Page
-
-**Purpose:** Shows all movies that have been watched, along with user ratings and reviews.
-
-**What's Visible:**
-
-- Complete watched movie history
-- Filtering options (by name, genre, watch date)
-- For each movie:
-  - Title and genre
-  - User rating (1-5 stars)
-  - Date watched
-  - User's review
-  - Option to edit review and rating
-- Statistics showing total movies watched
-  ![alt text](historypage.png)
-
-### Settings Page
-
-**Purpose:** Allows users to customize their profile and application preferences.
-
-**What's Visible:**
-
-- Profile settings section:
-  - Profile picture upload
-  - Username and email fields
-- Password management:
-  - Change password form
-- Theme selection:
-  - Light/dark mode toggle
-- Account actions:
-  - Clear watchlist data
-  - Delete account options
-
-![alt text](settingspage.png)
-
-![alt text](settingspage.png)
+- **Endpoints:** Search movies, popular movies, movie details
+- **Security:** API key stored in environment variables
+- **Routes:**
+  - `GET /search` - Movie search page
+  - `GET /api/search/movies` - Search API endpoint
+  - `GET /api/movies/popular` - Popular movies endpoint
 
 ## Technology Stack
 
@@ -148,63 +129,52 @@ We have several hover over effects throughout the app and all pages are responsi
 - **Templating:** EJS for dynamic page rendering
 - **Database:** Supabase (PostgreSQL) with Authentication
 - **Security:** Helmet, CSRF protection, secure sessions
+- **Logging:** Winston (structured logging), Morgan (HTTP logging)
+- **External API:** TMDB (The Movie Database) API
 
 ## Project Structure
 
-```
+```text
 ├── src/
-│   ├── server.js           # Server entry point
-│   ├── app.js              # Express app configuration
-│   ├── config/             # Configuration files
-│   │   └── supabase.js     # Supabase client setup
-│   ├── services/           # Business logic services
-│   │   └── authService.js  # Supabase Auth integration
-│   ├── routes/             # Route definitions
-│   │   ├── index.js        # Main route handlers
-│   │   ├── api.js          # API routes
-│   │   └── users.js        # Authentication routes
-│   ├── controllers/        # Request handlers
-│   │   ├── homeController.js    # Home page controller
-│   │   ├── movieController.js   # Movie operations
-│   │   └── userController.js    # User authentication
-│   ├── models/             # Data models
-│   │   └── movieModel.js   # Movie database operations
-│   ├── views/              # EJS templates
-│   │   ├── index.ejs       # Home page (watchlist)
-│   │   ├── history.ejs     # Movie history page
-│   │   ├── settings.ejs    # User settings page
-│   │   ├── login.ejs       # Login page
-│   │   ├── register.ejs    # Registration page
-│   │   ├── error.ejs       # Error page
-│   │   └── layout.ejs      # Main layout template
-│   └── public/             # Static files
-│       ├── css/            # Stylesheets
-│       │   └── style.css   # Main stylesheet
-│       ├── js/             # Client-side JavaScript
-│       │   ├── main.js     # Main JavaScript file
-│       │   ├── history.js  # History page functionality
-│       │   └── settings.js # Settings page functionality
-│       └── images/         # Image assets
-│           └── default-avatar.png # Default user avatar
-├── supabase-setup.sql      # Database setup script
-├── test-supabase.js        # Test database connection
-├── test-auth.js            # Test authentication
-├── .env.example            # Environment variables template
-├── .eslintrc.json          # ESLint configuration
-├── .prettierrc.json        # Prettier configuration
-├── package.json            # Dependencies and scripts
-└── README.md               # Project documentation
+│   ├── server.js              # Server entry point with logging
+│   ├── app.js                 # Express app configuration
+│   ├── config/                # Configuration files
+│   │   ├── supabase.js        # Supabase client setup
+│   │   └── logger.js          # Winston logger configuration
+│   ├── middleware/            # Express middleware
+│   │   └── httpLogger.js      # Morgan HTTP logging middleware
+│   ├── services/              # Business logic services
+│   │   ├── authService.js     # Supabase Auth integration
+│   │   └── loggingService.js  # Centralized logging service
+│   ├── routes/                # Route definitions
+│   │   ├── index.js           # Main route handlers
+│   │   ├── api.js             # API routes
+│   │   └── users.js           # Authentication routes
+│   ├── controllers/           # Request handlers with logging
+│   │   ├── homeController.js  # Home page controller
+│   │   ├── movieController.js # Movie operations
+│   │   └── userController.js  # User authentication
+│   ├── models/                # Data models with logging
+│   │   └── movieModel.js      # Movie database operations
+│   ├── views/                 # EJS templates
+│   │   ├── index.ejs          # Home page (watchlist)
+│   │   ├── history.ejs        # Movie history page
+│   │   ├── settings.ejs       # User settings page
+│   │   ├── login.ejs          # Login page
+│   │   ├── register.ejs       # Registration page
+│   │   └── layout.ejs         # Main layout template
+│   └── public/                # Static files
+│       ├── css/style.css      # Main stylesheet
+│       └── js/main.js         # Client-side JavaScript
+├── logs/                      # Log files (auto-created)
+│   ├── combined.log          # All logs
+│   ├── error.log             # Error logs only
+│   ├── http.log              # HTTP request logs
+│   ├── exceptions.log        # Unhandled exceptions
+│   └── rejections.log        # Promise rejections
+├── package.json              # Dependencies and scripts
+└── README.md                 # This file
 ```
-
-## Features
-
-- 🎬 **Movie Management** - Add, remove, and track movies you want to watch
-- ⭐ **Ratings & Reviews** - Rate and review movies you've watched
-- 🔍 **Powerful Filtering** - Find movies by name, genre, rating, or date
-- 🌓 **Theme Switching** - Toggle between light and dark mode
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
-- 🔒 **User Authentication** - Secure login and registration with Supabase Auth
-- ☁️ **Cloud Database** - Real-time data storage with Supabase
 
 ## Getting Started
 
@@ -221,52 +191,48 @@ We have several hover over effects throughout the app and all pages are responsi
    npm install
    ```
 
-3. **Set up Supabase database**
-
-   Copy the contents of `supabase-setup.sql` to your Supabase SQL Editor and run it to create the movies table and sample data.
-
-4. **Set up environment variables**
+3. **Set up environment variables**
 
    ```bash
    cp .env.example .env
-   # Edit .env with your Supabase credentials (URL and API key are already configured)
    ```
 
-5. **Test the connection**
+4. **Start the application**
 
    ```bash
-   node test-supabase.js
+   npm run dev    # Development server with auto-reload
+   npm start    # Production server
    ```
 
-6. **Start the application**
+5. **View logs**
 
-   ```bash
-   npm run dev
-   ```
+   Logs are automatically created in the `logs/` directory:
+   - `combined.log` - All application logs
+   - `error.log` - Error-level logs only
+   - `http.log` - HTTP request/response logs
 
-7. **Open your browser**
+6. **Open your browser**
 
-   ```bash
-   http://localhost:3000
-   ```
+   Navigate to `http://localhost:3000`
 
 ## Available Scripts
 
 - `npm start` - Start production server
 - `npm run dev` - Start development server with auto-reload
-- `node test-supabase.js` - Test Supabase database connection
-- `node test-auth.js` - Test Supabase authentication setup
 - `npm run lint` - Check code for linting errors
 - `npm run format` - Format code with Prettier
+- `npm run migrate` - Run database migrations
+- `npm run seed` - Seed database with sample data
+- `npm run reset` - Reset database (migrate + seed)
 
 ## Database Schema
 
-The app uses a single `movies` table for both watchlist and watched movies:
+The app uses Supabase PostgreSQL with a single `movies` table:
 
 ```sql
 CREATE TABLE movies (
   id SERIAL PRIMARY KEY,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   genre VARCHAR(50) NOT NULL,
   desire_scale INTEGER CHECK (desire_scale >= 1 AND desire_scale <= 5),
@@ -275,14 +241,37 @@ CREATE TABLE movies (
   watched_date DATE,
   rating INTEGER CHECK (rating >= 1 AND rating <= 5),
   review TEXT,
+  tmdb_id INTEGER,
+  poster_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
-**Design Benefits:**
+## Environment Variables
 
-- Simple single-table approach (no complex JOINs)
-- `watched = false` for watchlist movies
-- `watched = true` for watched movies
-- Works with existing Supabase Auth users table
+Required environment variables (see `.env.example`):
+
+```env
+# Supabase Configuration
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# TMDB API Configuration
+TMDB_API_KEY=your_tmdb_api_key
+
+# Session Configuration
+SESSION_SECRET=your_random_session_secret
+
+# Application Configuration
+NODE_ENV=development
+PORT=3000
+```
+
+## Development Features
+
+- **Hot Reload**: Automatic server restart with nodemon in development
+- **Code Quality**: ESLint and Prettier for consistent code formatting
+- **Error Handling**: Comprehensive error logging and graceful error pages
+- **Security**: CSRF protection, secure headers, session management
+- **Database**: Automated migrations and seeding for easy setup

@@ -72,6 +72,21 @@ async function loadWatchedMovies() {
     if (result.success) {
       historyWatchedMovies = result.movies;
       historyFilteredMovies = [...historyWatchedMovies];
+
+      // Check if historyList already has content (from server-side rendering)
+      if (historyListEl && historyListEl.children.length > 0) {
+        const existingCards =
+          historyListEl.querySelectorAll('.movie-card').length;
+        if (existingCards === historyWatchedMovies.length) {
+          // Same number of movies, likely same content - don't re-render to preserve placeholders
+          console.log(
+            'History movies already rendered server-side, skipping client re-render'
+          );
+          updateStats();
+          return;
+        }
+      }
+
       renderMovies();
       updateStats();
     } else {

@@ -1,98 +1,196 @@
 /**
- * User Model
+ * User Model (Supabase Client Version)
  *
- * This model handles all database operations related to users.
- * Use parameterized queries ($1, $2, etc.) to prevent SQL injection.
+ * This model handles all database operations related to users using the
+ * Supabase client (HTTP).
  *
- * Example methods:
- * - findAll(): Get all users
- * - findById(id): Get user by ID
- * - findByEmail(email): Get user by email
- * - create(userData): Create a new user
- * - update(id, userData): Update a user
- * - delete(id): Delete a user
+ * It supports RLS (Row Level Security) by accepting access tokens
+ * to impersonate the authenticated user during updates.
  */
 
-const db = require('./db');
+const supabase = require('../config/supabase');
 
 class User {
   /**
-   * Find all users
-   * @returns {Promise<Array>} Array of users
+   * Retrieves all users from the database.
+   *
+   * @returns {Promise<Array>} Array of user objects
    */
   static async findAll() {
-    const query =
-      'SELECT id, username, email, created_at FROM users ORDER BY created_at DESC';
-    const result = await db.query(query);
-    return result.rows;
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, email, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('User.findAll error:', error);
+      throw error;
+    }
+    return data;
   }
 
   /**
-   * Find user by ID
-   * @param {number} id - User ID
-   * @returns {Promise<object|null>} User object or null
+   * Find user by ID.
+   *
+   * @param {string} id - The UUID of the user
+   * @returns {Promise<object|null>} User object or null if not found
    */
   static async findById(id) {
-    const query =
-      'SELECT id, username, email, created_at FROM users WHERE id = $1';
-    const result = await db.query(query, [id]);
-    return result.rows[0] || null;
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, email, profile_image_url, created_at')
+      .eq('id', id)
+      .single();
+
+    // PGRST116 is "Row not found" - return null instead of throwing
+    if (error && error.code !== 'PGRST116') {
+      console.error('User.findById error:', error);
+    }
+
+    return data || null;
   }
 
   /**
-   * Find user by email (including password for authentication)
-   * @param {string} email - User email
-   * @returns {Promise<object|null>} User object or null
+   * Find user by email.
+   *
+   * @param {string} email - The email address to search for
+   * @returns {Promise<object|null>} User object or null if not found
    */
   static async findByEmail(email) {
-    const query = 'SELECT * FROM users WHERE email = $1';
-    const result = await db.query(query, [email]);
-    return result.rows[0] || null;
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('User.findByEmail error:', error);
+    }
+
+    return data || null;
   }
 
   /**
-   * Create a new user
+   * Create a new user record.
+   *
    * @param {object} userData - User data { username, email, password }
    * @returns {Promise<object>} Created user object
    */
   static async create(userData) {
     const { username, email, password } = userData;
-    const query = `
-      INSERT INTO users (username, email, password)
-      VALUES ($1, $2, $3)
-      RETURNING id, username, email, created_at
-    `;
-    const result = await db.query(query, [username, email, password]);
-    return result.rows[0];
+    // Note: RLS usually allows INSERT with auth.uid() = id check
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ username, email, password }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   /**
-   * Update user
-   * @param {number} id - User ID
-   * @param {object} userData - User data to update
+   * Update generic user details.
+   *
+   * @param {string} id - The UUID of the user
+   * @param {object} userData - Fields to update { username, email }
    * @returns {Promise<object>} Updated user object
    */
   static async update(id, userData) {
     const { username, email } = userData;
-    const query = `
-      UPDATE users
-      SET username = $1, email = $2, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $3
-      RETURNING id, username, email, created_at, updated_at
-    `;
-    const result = await db.query(query, [username, email, id]);
-    return result.rows[0];
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        username,
+        email,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   /**
-   * Delete user
-   * @param {number} id - User ID
-   * @returns {Promise<boolean>} True if deleted, false otherwise
+   * Update the user's profile picture URL.
+   * REQUIRES Access Token to pass RLS.
+   *
+   * @param {string} id - The UUID of the user
+   * @param {string} imageUrl - The relative path to the uploaded image
+   * @param {string} accessToken - The user's auth token
+   * @returns {Promise<object>} Updated user object
+   */
+  static async updateAvatar(id, imageUrl, accessToken) {
+    console.log(`Supabase Client: Updating avatar for ${id}`);
+
+    // 1. Authenticate this request as the user to pass RLS
+    if (accessToken) {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken,
+      });
+      if (sessionError)
+        console.warn('User.js: Session warning:', sessionError.message);
+    }
+
+    // 2. Perform the update
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        profile_image_url: imageUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase Update Error:', error);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  /**
+   * Mark a user account as deleted (soft delete).
+   *
+   * @param {string} id - The UUID of the user
+   * @returns {Promise<boolean>} True if successful, false otherwise
+   */
+  static async markAsDeleted(id) {
+    const { error } = await supabase
+      .from('users')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('User.markAsDeleted error:', error);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Delete a user record.
+   *
+   * @param {string} id - The UUID of the user
+   * @returns {Promise<boolean>} True if successful, false otherwise
    */
   static async delete(id) {
-    const query = 'DELETE FROM users WHERE id = $1';
-    const result = await db.query(query, [id]);
-    return result.rowCount > 0;
+    const { error } = await supabase.from('users').delete().eq('id', id);
+
+    if (error) {
+      console.error('User.delete error:', error);
+      return false;
+    }
+    return true;
   }
 }
 
