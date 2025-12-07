@@ -321,14 +321,21 @@ class AuthService {
       }
 
       // Get current user
-      const { data: { user }, error: getUserError } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+        error: getUserError,
+      } = await supabase.auth.getUser();
+
       if (getUserError || !user) {
-        throw new Error(`Could not get user: ${getUserError?.message || 'User not found'}`);
+        throw new Error(
+          `Could not get user: ${getUserError?.message || 'User not found'}`
+        );
       }
 
       // Delete the user from Supabase Auth using admin client
-      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(
+        user.id
+      );
 
       if (deleteError) {
         throw new Error(`Account deletion failed: ${deleteError.message}`);

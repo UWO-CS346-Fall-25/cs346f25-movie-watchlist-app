@@ -73,7 +73,8 @@ exports.postRegister = async (req, res, next) => {
       });
       return res.render('register', {
         title: 'Register',
-        error: 'An account with this email already exists. Please use a different email or try logging in.',
+        error:
+          'An account with this email already exists. Please use a different email or try logging in.',
         csrfToken: req.csrfToken ? req.csrfToken() : '',
       });
     }
@@ -303,7 +304,7 @@ exports.postUpdateEmail = async (req, res) => {
 
     // Store old email for logging
     const oldEmail = req.session.user.email;
-    
+
     const result = await authService.updateEmail(email, accessToken);
 
     if (!result.success) {
@@ -442,9 +443,9 @@ exports.postClearWatchlistData = async (req, res) => {
     const accessToken = req.session?.supabaseSession?.access_token;
 
     if (!userId) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'User not authenticated' 
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
       });
     }
 
@@ -453,9 +454,9 @@ exports.postClearWatchlistData = async (req, res) => {
     const result = await movieModel.clearAllUserMovies(userId, accessToken);
 
     if (!result) {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Failed to clear watchlist data' 
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to clear watchlist data',
       });
     }
 
@@ -465,9 +466,9 @@ exports.postClearWatchlistData = async (req, res) => {
       ip: req.ip,
     });
 
-    res.json({ 
-      success: true, 
-      message: 'All watchlist data has been cleared successfully' 
+    res.json({
+      success: true,
+      message: 'All watchlist data has been cleared successfully',
     });
   } catch (error) {
     loggingService.error('Clear watchlist data error', {
@@ -475,9 +476,9 @@ exports.postClearWatchlistData = async (req, res) => {
       stack: error.stack,
       userId: req.session?.user?.id,
     });
-    res.status(500).json({ 
-      success: false, 
-      error: 'Server error clearing watchlist data' 
+    res.status(500).json({
+      success: false,
+      error: 'Server error clearing watchlist data',
     });
   }
 };
@@ -495,9 +496,9 @@ exports.postDeleteAccount = async (req, res) => {
     const accessToken = req.session?.supabaseSession?.access_token;
 
     if (!userId) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'User not authenticated' 
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
       });
     }
 
@@ -507,11 +508,11 @@ exports.postDeleteAccount = async (req, res) => {
 
     // Delete user from Supabase Auth and database
     const result = await authService.deleteAccount(accessToken);
-    
+
     if (!result.success) {
-      return res.status(500).json({ 
-        success: false, 
-        error: result.error || 'Failed to delete account' 
+      return res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to delete account',
       });
     }
 
@@ -527,10 +528,10 @@ exports.postDeleteAccount = async (req, res) => {
     // Destroy session
     req.session.destroy();
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Account deleted successfully',
-      redirect: '/users/login'
+      redirect: '/users/login',
     });
   } catch (error) {
     loggingService.error('Delete account error', {
@@ -538,9 +539,9 @@ exports.postDeleteAccount = async (req, res) => {
       stack: error.stack,
       userId: req.session?.user?.id,
     });
-    res.status(500).json({ 
-      success: false, 
-      error: 'Server error deleting account' 
+    res.status(500).json({
+      success: false,
+      error: 'Server error deleting account',
     });
   }
 };

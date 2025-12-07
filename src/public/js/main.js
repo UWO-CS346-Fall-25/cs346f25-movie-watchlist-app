@@ -1466,28 +1466,32 @@ function clearAllMovies() {
 // Handle clear all watchlist data
 async function handleClearAllData(e) {
   e.preventDefault();
-  
+
   const confirmed = confirm(
     'Are you sure you want to clear ALL your watchlist data? This action cannot be undone.'
   );
-  
+
   if (!confirmed) return;
 
   try {
-    const csrfToken = document.querySelector('input[name="_csrf"]')?.value || '';
+    const csrfToken =
+      document.querySelector('input[name="_csrf"]')?.value || '';
     console.log('CSRF Token found:', csrfToken); // Debug log
-    
+
     if (!csrfToken) {
-      showNotification('Security token not found. Please refresh the page.', 'error');
+      showNotification(
+        'Security token not found. Please refresh the page.',
+        'error'
+      );
       return;
     }
-    
+
     // Use URLSearchParams to properly handle CSRF token (like form submission)
     /* eslint-disable no-undef */
     const params = new URLSearchParams();
     params.append('_csrf', csrfToken);
     /* eslint-enable no-undef */
-    
+
     const response = await fetch('/users/clear-watchlist', {
       method: 'POST',
       headers: {
@@ -1509,42 +1513,49 @@ async function handleClearAllData(e) {
     }
   } catch (error) {
     console.error('Error clearing watchlist data:', error);
-    showNotification('An error occurred while clearing watchlist data', 'error');
+    showNotification(
+      'An error occurred while clearing watchlist data',
+      'error'
+    );
   }
 }
 
 // Handle delete account
 async function handleDeleteAccount(e) {
   e.preventDefault();
-  
+
   const confirmed = confirm(
     'Are you sure you want to DELETE YOUR ACCOUNT? This will permanently delete all your data and cannot be undone.'
   );
-  
+
   if (!confirmed) return;
 
   // Double confirmation for account deletion
   const doubleConfirmed = confirm(
     'This is your final warning. Are you absolutely sure you want to delete your account? All your data will be lost forever.'
   );
-  
+
   if (!doubleConfirmed) return;
 
   try {
-    const csrfToken = document.querySelector('input[name="_csrf"]')?.value || '';
+    const csrfToken =
+      document.querySelector('input[name="_csrf"]')?.value || '';
     console.log('CSRF Token found:', csrfToken); // Debug log
-    
+
     if (!csrfToken) {
-      showNotification('Security token not found. Please refresh the page.', 'error');
+      showNotification(
+        'Security token not found. Please refresh the page.',
+        'error'
+      );
       return;
     }
-    
+
     // Use URLSearchParams to properly handle CSRF token (like form submission)
     /* eslint-disable no-undef */
     const params = new URLSearchParams();
     params.append('_csrf', csrfToken);
     /* eslint-enable no-undef */
-    
+
     const response = await fetch('/users/delete-account', {
       method: 'POST',
       headers: {
