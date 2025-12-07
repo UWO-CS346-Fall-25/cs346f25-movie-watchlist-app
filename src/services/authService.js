@@ -5,6 +5,7 @@
  */
 
 const supabase = require('../config/supabase');
+const { admin: supabaseAdmin } = require('../config/supabase');
 const loggingService = require('./loggingService');
 
 class AuthService {
@@ -214,7 +215,7 @@ class AuthService {
         success: true,
         user: data.user,
         message:
-          'Email updated successfully! Please check your new email to confirm the change.',
+          'Email update initiated! Please check your new email address and click the confirmation link to complete the change.',
       };
     } catch (error) {
       console.error('Email update error:', error);
@@ -294,6 +295,57 @@ class AuthService {
       };
     } catch (error) {
       console.error('Password reset error:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Delete user account completely from Supabase Auth
+   * Note: This completely removes the user from Supabase Auth so they cannot log back in.
+   * @param {string} accessToken - User's access token
+   * @returns {Promise<Object>} Delete result
+   */
+  async deleteAccount(accessToken) {
+    try {
+      // Set the session to authenticate the user and get their ID
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken,
+      });
+
+      if (sessionError) {
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
+
+      // Get current user
+      const { data: { user }, error: getUserError } = await supabase.auth.getUser();
+      
+      if (getUserError || !user) {
+        throw new Error(`Could not get user: ${getUserError?.message || 'User not found'}`);
+      }
+
+      // Delete the user from Supabase Auth using admin client
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+
+      if (deleteError) {
+        throw new Error(`Account deletion failed: ${deleteError.message}`);
+      }
+
+      // Sign out is not needed since user is deleted, but let's do it for safety
+      await supabase.auth.signOut();
+
+      loggingService.logAuthSuccess(user.id, user.email, 'delete_account');
+
+      return {
+        success: true,
+        message: 'Account deleted successfully',
+        userId: user.id, // Return userId so we can delete from our database
+      };
+    } catch (error) {
+      loggingService.logAuthFailure('unknown', error.message, 'delete_account');
       return {
         success: false,
         error: error.message,

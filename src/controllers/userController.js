@@ -63,6 +63,21 @@ exports.postRegister = async (req, res, next) => {
       });
     }
 
+    // Check if email already exists in our database
+    const existingUser = await User.findByEmail(email);
+    if (existingUser) {
+      loggingService.warn('Registration failed - email already exists', {
+        email: email,
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+      });
+      return res.render('register', {
+        title: 'Register',
+        error: 'An account with this email already exists. Please use a different email or try logging in.',
+        csrfToken: req.csrfToken ? req.csrfToken() : '',
+      });
+    }
+
     // Register with Supabase Auth
     const result = await authService.register(email, password);
 
@@ -286,6 +301,9 @@ exports.postUpdateEmail = async (req, res) => {
         .json({ success: false, error: 'Email is required' });
     }
 
+    // Store old email for logging
+    const oldEmail = req.session.user.email;
+    
     const result = await authService.updateEmail(email, accessToken);
 
     if (!result.success) {
@@ -299,7 +317,7 @@ exports.postUpdateEmail = async (req, res) => {
 
     loggingService.info('Email updated successfully', {
       userId: req.session.user.id,
-      oldEmail: req.session.user.email,
+      oldEmail: oldEmail,
       newEmail: email,
     });
 
@@ -408,5 +426,121 @@ exports.postUploadAvatar = async (req, res) => {
   } catch (error) {
     loggingService.error('Avatar upload error', { error: error.message });
     res.redirect('/settings');
+  }
+};
+
+/**
+ * Clear all watchlist data for the authenticated user.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with success/error status
+ */
+exports.postClearWatchlistData = async (req, res) => {
+  try {
+    const userId = req.session?.user?.id;
+    const accessToken = req.session?.supabaseSession?.access_token;
+
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'User not authenticated' 
+      });
+    }
+
+    // Clear all movies for this user
+    const movieModel = require('../models/movieModel');
+    const result = await movieModel.clearAllUserMovies(userId, accessToken);
+
+    if (!result) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Failed to clear watchlist data' 
+      });
+    }
+
+    loggingService.info('User cleared all watchlist data', {
+      userId: userId,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+    });
+
+    res.json({ 
+      success: true, 
+      message: 'All watchlist data has been cleared successfully' 
+    });
+  } catch (error) {
+    loggingService.error('Clear watchlist data error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error clearing watchlist data' 
+    });
+  }
+};
+
+/**
+ * Delete the authenticated user's account completely.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with success/error status
+ */
+exports.postDeleteAccount = async (req, res) => {
+  try {
+    const userId = req.session?.user?.id;
+    const accessToken = req.session?.supabaseSession?.access_token;
+
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'User not authenticated' 
+      });
+    }
+
+    // First clear all user's movies
+    const movieModel = require('../models/movieModel');
+    await movieModel.clearAllUserMovies(userId, accessToken);
+
+    // Delete user from Supabase Auth and database
+    const result = await authService.deleteAccount(accessToken);
+    
+    if (!result.success) {
+      return res.status(500).json({ 
+        success: false, 
+        error: result.error || 'Failed to delete account' 
+      });
+    }
+
+    // Delete user record from our database
+    await User.delete(userId);
+
+    loggingService.info('User account deleted', {
+      userId: userId,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+    });
+
+    // Destroy session
+    req.session.destroy();
+
+    res.json({ 
+      success: true, 
+      message: 'Account deleted successfully',
+      redirect: '/users/login'
+    });
+  } catch (error) {
+    loggingService.error('Delete account error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.session?.user?.id,
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error deleting account' 
+    });
   }
 };

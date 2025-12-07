@@ -1243,6 +1243,8 @@ function initializeSettings() {
   const avatarInput = document.getElementById('avatarInput');
   const emailForm = document.getElementById('emailForm');
   const passwordForm = document.getElementById('passwordForm');
+  const clearAllDataBtn = document.getElementById('clearAllData');
+  const deleteAccountBtn = document.getElementById('deleteAccount');
 
   if (themeInputs) {
     themeInputs.forEach((input) => {
@@ -1261,6 +1263,14 @@ function initializeSettings() {
 
   if (passwordForm) {
     passwordForm.addEventListener('submit', handlePasswordUpdate);
+  }
+
+  if (clearAllDataBtn) {
+    clearAllDataBtn.addEventListener('click', handleClearAllData);
+  }
+
+  if (deleteAccountBtn) {
+    deleteAccountBtn.addEventListener('click', handleDeleteAccount);
   }
 }
 
@@ -1335,11 +1345,9 @@ async function handleEmailUpdate(e) {
     const response = await fetch('/users/update-email', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        // 2. Include the token in the headers
-        'CSRF-Token': csrfToken,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify({ email: newEmail }),
+      body: `email=${encodeURIComponent(newEmail)}&_csrf=${encodeURIComponent(csrfToken)}`,
     });
 
     const result = await response.json();
@@ -1452,6 +1460,113 @@ function clearAllMovies() {
       console.error('Error clearing movies:', error);
       showNotification('Error clearing watchlist', 'error');
     }
+  }
+}
+
+// Handle clear all watchlist data
+async function handleClearAllData(e) {
+  e.preventDefault();
+  
+  const confirmed = confirm(
+    'Are you sure you want to clear ALL your watchlist data? This action cannot be undone.'
+  );
+  
+  if (!confirmed) return;
+
+  try {
+    const csrfToken = document.querySelector('input[name="_csrf"]')?.value || '';
+    console.log('CSRF Token found:', csrfToken); // Debug log
+    
+    if (!csrfToken) {
+      showNotification('Security token not found. Please refresh the page.', 'error');
+      return;
+    }
+    
+    // Use URLSearchParams to properly handle CSRF token (like form submission)
+    /* eslint-disable no-undef */
+    const params = new URLSearchParams();
+    params.append('_csrf', csrfToken);
+    /* eslint-enable no-undef */
+    
+    const response = await fetch('/users/clear-watchlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      showNotification(data.message, 'success');
+      // Refresh the page or redirect to home after a delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    } else {
+      showNotification(data.error || 'Failed to clear watchlist data', 'error');
+    }
+  } catch (error) {
+    console.error('Error clearing watchlist data:', error);
+    showNotification('An error occurred while clearing watchlist data', 'error');
+  }
+}
+
+// Handle delete account
+async function handleDeleteAccount(e) {
+  e.preventDefault();
+  
+  const confirmed = confirm(
+    'Are you sure you want to DELETE YOUR ACCOUNT? This will permanently delete all your data and cannot be undone.'
+  );
+  
+  if (!confirmed) return;
+
+  // Double confirmation for account deletion
+  const doubleConfirmed = confirm(
+    'This is your final warning. Are you absolutely sure you want to delete your account? All your data will be lost forever.'
+  );
+  
+  if (!doubleConfirmed) return;
+
+  try {
+    const csrfToken = document.querySelector('input[name="_csrf"]')?.value || '';
+    console.log('CSRF Token found:', csrfToken); // Debug log
+    
+    if (!csrfToken) {
+      showNotification('Security token not found. Please refresh the page.', 'error');
+      return;
+    }
+    
+    // Use URLSearchParams to properly handle CSRF token (like form submission)
+    /* eslint-disable no-undef */
+    const params = new URLSearchParams();
+    params.append('_csrf', csrfToken);
+    /* eslint-enable no-undef */
+    
+    const response = await fetch('/users/delete-account', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      showNotification(data.message, 'success');
+      // Redirect to login page
+      setTimeout(() => {
+        window.location.href = data.redirect || '/users/login';
+      }, 2000);
+    } else {
+      showNotification(data.error || 'Failed to delete account', 'error');
+    }
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    showNotification('An error occurred while deleting account', 'error');
   }
 }
 

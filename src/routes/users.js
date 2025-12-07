@@ -73,4 +73,10 @@ router.post(
   userController.postUploadAvatar
 );
 
+// POST /users/clear-watchlist - Clear all watchlist data
+router.post('/clear-watchlist', userController.postClearWatchlistData);
+
+// POST /users/delete-account - Delete user account
+router.post('/delete-account', userController.postDeleteAccount);
+
 module.exports = router;

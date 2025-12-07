@@ -155,6 +155,29 @@ class User {
   }
 
   /**
+   * Mark a user account as deleted (soft delete).
+   *
+   * @param {string} id - The UUID of the user
+   * @returns {Promise<boolean>} True if successful, false otherwise
+   */
+  static async markAsDeleted(id) {
+    const { error } = await supabase
+      .from('users')
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('User.markAsDeleted error:', error);
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Delete a user record.
    *
    * @param {string} id - The UUID of the user

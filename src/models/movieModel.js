@@ -406,3 +406,51 @@ exports.updateMovieReview = async (id, review, rating, userId = null) => {
     return false;
   }
 };
+
+/**
+ * Clear all movies for a specific user
+ * @param {string} userId - User ID to clear movies for
+ * @param {string} accessToken - User's access token for authentication
+ * @returns {Promise<boolean>} True if successful, false otherwise
+ */
+exports.clearAllUserMovies = async (userId, accessToken = null) => {
+  try {
+    // Authenticate if access token is provided
+    if (accessToken) {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken,
+      });
+      if (sessionError) {
+        console.warn('movieModel.js: Session warning:', sessionError.message);
+      }
+    }
+
+    const { error } = await supabase
+      .from('movies')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Clear all movies error:', error);
+      loggingService.error('Failed to clear user movies', {
+        userId: userId,
+        error: error.message,
+      });
+      return false;
+    }
+
+    loggingService.info('All movies cleared for user', {
+      userId: userId,
+    });
+
+    return true;
+  } catch (error) {
+    console.error('clearAllUserMovies error:', error);
+    loggingService.error('Clear all movies error', {
+      error: error.message,
+      userId: userId,
+    });
+    return false;
+  }
+};
