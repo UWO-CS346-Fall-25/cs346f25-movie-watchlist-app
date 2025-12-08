@@ -440,8 +440,8 @@ function displaySearchResults(movies) {
         <div class="search-result-info">
           <div class="search-result-title">${movie.title}</div>
           <div class="search-result-meta">
-            <span>📅 ${year}</span>
-            <span>⭐ ${rating}</span>
+            <span>&#x1F4C5; ${year}</span>
+            <span>&#x2B50; ${rating}</span>
           </div>
           <div class="search-result-overview">${movie.overview || 'No description available.'}</div>
         </div>

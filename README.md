@@ -4,15 +4,15 @@ A full-stack web application that allows users to track movies they want to watc
 
 ## Features
 
-- 🎬 **Movie Management** - Add, remove, and track movies you want to watch
-- ⭐ **Ratings & Reviews** - Rate and review movies you've watched
-- 🔍 **Movie Search** - Integration with TMDB API for real-time movie search
-- 🔍 **Powerful Filtering** - Find movies by name, genre, rating, or date
-- 🌓 **Theme Switching** - Toggle between light and dark mode
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
-- 🔒 **User Authentication** - Secure login and registration with Supabase Auth
-- ☁️ **Cloud Database** - Real-time data storage with Supabase
-- 📊 **Comprehensive Logging** - Application monitoring with Winston and Morgan
+- **Movie Management** - Add, remove, and track movies you want to watch
+- **Ratings & Reviews** - Rate and review movies you've watched
+- **Movie Search** - Integration with TMDB API for real-time movie search
+- **Powerful Filtering** - Find movies by name, genre, rating, or date
+- **Theme Switching** - Toggle between light and dark mode
+- **Responsive Design** - Works on desktop, tablet, and mobile devices
+- **User Authentication** - Secure login and registration with Supabase Auth
+- **Cloud Database** - Real-time data storage with Supabase
+- **Comprehensive Logging** - Application monitoring with Winston and Morgan
 
 ## Logging System (Deliverable 7)
 

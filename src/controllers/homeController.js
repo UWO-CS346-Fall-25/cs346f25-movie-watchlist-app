@@ -124,5 +124,7 @@ exports.getSettings = (req, res) => {
     user: user,
     csrfToken: req.csrfToken ? req.csrfToken() : '',
     currentTheme: 'light',
+    error: req.query.error || null,
+    success: req.query.success || null,
   });
 };

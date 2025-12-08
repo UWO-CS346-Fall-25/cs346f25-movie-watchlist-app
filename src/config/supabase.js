@@ -4,13 +4,11 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = 'https://xsycgemadkclphbgvtcn.supabase.co';
-const supabaseAnonKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzeWNnZW1hZGtjbHBoYmd2dGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NTI5NzIsImV4cCI6MjA3NDIyODk3Mn0.QXsFKzzeDMWXwywCQQLAW6tIkt3PTseFALM7Kl61vD0';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
 // Service role key for admin operations (like deleting users)
-const supabaseServiceKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzeWNnZW1hZGtjbHBoYmd2dGNuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODY1Mjk3MiwiZXhwIjoyMDc0MjI4OTcyfQ.019xtBHc2Ar5cTZdZ2Kamo4soRFIDWvsRuDcUOCS2_s';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
 // Regular client for user operations
 const supabase = createClient(supabaseUrl, supabaseAnonKey);

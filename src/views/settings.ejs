@@ -32,6 +32,18 @@
         <p>Manage your profile and preferences</p>
       </section>
 
+      <% if (error) { %>
+        <div class="alert alert-error">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <% if (success) { %>
+        <div class="alert alert-success">
+          <%= success %>
+        </div>
+      <% } %>
+
       <div class="settings-container">
         <section class="profile-section">
           <h2>Profile Settings</h2>
