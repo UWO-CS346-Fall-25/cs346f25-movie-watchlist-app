@@ -423,10 +423,18 @@ exports.postUploadAvatar = async (req, res) => {
       filename: req.file.filename,
     });
 
-    res.redirect('/settings');
+    res.redirect(
+      '/settings?success=' +
+        encodeURIComponent('Profile picture updated successfully!')
+    );
   } catch (error) {
     loggingService.error('Avatar upload error', { error: error.message });
-    res.redirect('/settings');
+    res.redirect(
+      '/settings?error=' +
+        encodeURIComponent(
+          'Failed to update profile picture. Please try again.'
+        )
+    );
   }
 };
 

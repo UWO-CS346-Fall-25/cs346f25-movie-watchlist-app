@@ -69,7 +69,27 @@ router.post('/update-password', userController.postUpdatePassword);
 // POST /users/upload-avatar - Handle image upload
 router.post(
   '/upload-avatar',
-  upload.single('avatar'),
+  (req, res, next) => {
+    upload.single('avatar')(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.redirect(
+            '/settings?error=' +
+              encodeURIComponent('File too large. Maximum size is 5MB.')
+          );
+        }
+        return res.redirect(
+          '/settings?error=' +
+            encodeURIComponent('File upload error: ' + err.message)
+        );
+      } else if (err) {
+        return res.redirect(
+          '/settings?error=' + encodeURIComponent(err.message)
+        );
+      }
+      next();
+    });
+  },
   userController.postUploadAvatar
 );
 
